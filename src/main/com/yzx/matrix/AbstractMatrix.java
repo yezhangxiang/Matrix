@@ -1,4 +1,4 @@
-package com.yzx;
+package com.yzx.matrix;
 
 public abstract class AbstractMatrix<E> implements Matrix<E> {
     protected int rowCount;

@@ -1,4 +1,4 @@
-package com.yzx;
+package com.yzx.matrix;
 
 import java.util.HashMap;
 import java.util.Iterator;
