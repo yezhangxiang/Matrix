@@ -30,9 +30,9 @@ public class ArrayMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
 
 
     @Override
-    public E get(int globalIndex) {
-        int rowIndex = globalIndex / columnCount;
-        int columnIndex = globalIndex % columnCount;
+    public E get(int flatIndex) {
+        int rowIndex = flatIndex / columnCount;
+        int columnIndex = flatIndex % columnCount;
         return get(rowIndex, columnIndex);
     }
 
@@ -133,37 +133,30 @@ public class ArrayMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
     }
 
     private class arrayIterator implements Iterator<E> {
-        private int currentRowIndex;
-        private int currentColumnIndex;
+        private Iterator<Integer> keyIterator = new arrayKeyIterator();
         @Override
         public boolean hasNext() {
-            return currentRowIndex != rowCount || currentColumnIndex != columnCount;
+            return keyIterator.hasNext();
         }
 
         @Override
         public E next() {
-            E element = elementData(currentRowIndex, currentColumnIndex);
-            if (columnCount - 1 == currentColumnIndex) {
-                 currentRowIndex++;
-                 currentColumnIndex = 0;
-            } else {
-                currentColumnIndex++;
-            }
-            return element;
+            return get(keyIterator.next());
         }
     }
 
     private class arrayKeyIterator implements Iterator<Integer> {
-        private int currnetRowIndex;
+        private int currentRowIndex;
         private int currentColumnIndex;
         @Override
         public boolean hasNext() {
-            for (; currnetRowIndex < rowCount; currnetRowIndex++) {
+            for (; currentRowIndex < rowCount; currentRowIndex++) {
                 for (; currentColumnIndex < columnCount; currentColumnIndex++) {
-                    if (null != elementData[currnetRowIndex][currentColumnIndex]) {
+                    if (null != elementData[currentRowIndex][currentColumnIndex]) {
                         return true;
                     }
                 }
+                currentColumnIndex = 0;
             }
             return false;
         }
@@ -173,10 +166,10 @@ public class ArrayMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
             Object o;
             int index;
             do {
-                o = elementData[currnetRowIndex][currentColumnIndex];
-                index = currnetRowIndex * columnCount + currentColumnIndex;
+                o = elementData[currentRowIndex][currentColumnIndex];
+                index = currentRowIndex * columnCount + currentColumnIndex;
                 if (currentColumnIndex == columnCount - 1) {
-                    currnetRowIndex++;
+                    currentRowIndex++;
                     currentColumnIndex = 0;
                 } else {
                     currentColumnIndex++;

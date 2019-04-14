@@ -24,8 +24,8 @@ public class MapMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
     }
 
     @Override
-    public E get(int globalIndex) {
-        return elementData.get(globalIndex);
+    public E get(int flatIndex) {
+        return elementData.get(flatIndex);
     }
 
     @Override

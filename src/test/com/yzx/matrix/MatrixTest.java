@@ -3,7 +3,10 @@ package com.yzx.matrix;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Iterator;
+
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -77,6 +80,8 @@ public class MatrixTest {
     public void get() throws Exception {
         assertEquals("r0_c1", mapMatrix.get(0, 1));
         assertEquals("r0_c1", arrayMatrix.get(0, 1));
+        assertEquals("r0_c1", mapMatrix.get(1));
+        assertEquals("r0_c1", arrayMatrix.get(1));
     }
 
     @Test
@@ -96,27 +101,76 @@ public class MatrixTest {
 
     @Test
     public void iterator() throws Exception {
+        int num = 0;
+        Iterator<String> iterator = mapMatrix.iterator();
+        while (iterator.hasNext()) {
+            String s = iterator.next();
+            assertNotNull(s);
+            num++;
+        }
+        assertEquals(mapMatrix.getEffectiveCount(), num);
 
+        num = 0;
+        iterator = arrayMatrix.iterator();
+        while (iterator.hasNext()) {
+            String s = iterator.next();
+            assertNotNull(s);
+            num++;
+        }
+        assertEquals(arrayMatrix.getEffectiveCount(), num);
     }
 
     @Test
     public void keyIterator() throws Exception {
+        int num = 0;
+        Iterator<Integer> keyIterator = mapMatrix.keyIterator();
+        while (keyIterator.hasNext()) {
+            Integer flatIndex = keyIterator.next();
+            String s = mapMatrix.get(flatIndex);
+            assertNotNull(s);
+            num++;
+        }
+        assertEquals(mapMatrix.getEffectiveCount(), num);
 
+        num = 0;
+        keyIterator = arrayMatrix.keyIterator();
+        while (keyIterator.hasNext()) {
+            Integer flatIndex = keyIterator.next();
+            String s = arrayMatrix.get(flatIndex);
+            assertNotNull(s);
+            num++;
+        }
+        assertEquals(arrayMatrix.getEffectiveCount(), num);
     }
 
     @Test
     public void getStartRow() throws Exception {
-
+        assertEquals(0, mapMatrix.getStartRow(arrayMatrix));
+        assertEquals(0, arrayMatrix.getStartRow(mapMatrix));
     }
 
     @Test
     public void getStartColumn() throws Exception {
-
+        assertEquals(0, mapMatrix.getStartColumn(arrayMatrix));
+        assertEquals(0, arrayMatrix.getStartColumn(mapMatrix));
     }
 
     @Test
     public void crop() throws Exception {
+        int effectiveCount = mapMatrix.getEffectiveCount();
+        int rowCount = mapMatrix.getRowCount();
+        int columnCount = mapMatrix.getColumnCount();
+        mapMatrix.crop();
+        assertEquals(effectiveCount, mapMatrix.getEffectiveCount());
+        assert rowCount >= mapMatrix.getRowCount();
+        assert columnCount >= mapMatrix.getColumnCount();
 
+        effectiveCount = arrayMatrix.getEffectiveCount();
+        rowCount = arrayMatrix.getRowCount();
+        columnCount = arrayMatrix.getColumnCount();
+        arrayMatrix.crop();
+        assertEquals(effectiveCount, arrayMatrix.getEffectiveCount());
+        assert rowCount >= arrayMatrix.getRowCount();
+        assert columnCount >= arrayMatrix.getColumnCount();
     }
-
 }

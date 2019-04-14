@@ -14,11 +14,11 @@ public interface Matrix<E> {
     int getResolution();
     E get(int rowIndex, int columnIndex);
 
-    E get(int globalIndex);
+    E get(int flatIndex);
     E get(double x, double y);
 
     void set(int rowIndex, int columnIndex, E element);
-    void set(int globalIndex, E element);
+    void set(int flatIndex, E element);
     void set(double x, double y, E element);
     boolean isEmpty();
 

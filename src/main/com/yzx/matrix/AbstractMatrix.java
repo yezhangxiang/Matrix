@@ -45,9 +45,9 @@ public abstract class AbstractMatrix<E> implements Matrix<E> {
     }
 
     @Override
-    public void set(int globalIndex, E element) {
-        int rowIndex = globalIndex / columnCount;
-        int columnIndex = globalIndex % columnCount;
+    public void set(int flatIndex, E element) {
+        int rowIndex = flatIndex / columnCount;
+        int columnIndex = flatIndex % columnCount;
         set(rowIndex, columnIndex, element);
     }
 
