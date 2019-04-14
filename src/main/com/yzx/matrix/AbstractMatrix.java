@@ -1,5 +1,7 @@
 package com.yzx.matrix;
 
+import java.util.Iterator;
+
 public abstract class AbstractMatrix<E> implements Matrix<E> {
     protected int rowCount;
     protected int columnCount;
@@ -101,6 +103,53 @@ public abstract class AbstractMatrix<E> implements Matrix<E> {
     @Override
     public int getStartColumn(Matrix matrix) {
         return (int)(-topLeftX + matrix.getTopLeftX()) / resolution;
+    }
+
+    class arrayIterator implements Iterator<E> {
+        private Iterator<Integer> keyIterator = new arrayKeyIterator();
+        @Override
+        public boolean hasNext() {
+            return keyIterator.hasNext();
+        }
+
+        @Override
+        public E next() {
+            return get(keyIterator.next());
+        }
+    }
+
+    class arrayKeyIterator implements Iterator<Integer> {
+        private int currentRowIndex;
+        private int currentColumnIndex;
+        @Override
+        public boolean hasNext() {
+            for (; currentRowIndex < rowCount; currentRowIndex++) {
+                for (; currentColumnIndex < columnCount; currentColumnIndex++) {
+                    if (null != get(currentRowIndex, currentColumnIndex)) {
+                        return true;
+                    }
+                }
+                currentColumnIndex = 0;
+            }
+            return false;
+        }
+
+        @Override
+        public Integer next() {
+            Object o;
+            int index;
+            do {
+                o = get(currentRowIndex, currentColumnIndex);
+                index = currentRowIndex * columnCount + currentColumnIndex;
+                if (currentColumnIndex == columnCount - 1) {
+                    currentRowIndex++;
+                    currentColumnIndex = 0;
+                } else {
+                    currentColumnIndex++;
+                }
+            } while (null == o);
+            return index;
+        }
     }
 }
 
