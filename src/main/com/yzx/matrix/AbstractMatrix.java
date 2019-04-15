@@ -21,6 +21,14 @@ public abstract class AbstractMatrix<E> implements Matrix<E> {
         this.columnCount = columnCount;
     }
 
+    public AbstractMatrix(Bound bound) {
+        this.resolution = bound.getResolution();
+        this.rowCount = bound.getRowCount();
+        this.columnCount = bound.getColumnCount();
+        this.topLeftX = bound.getTopLeftX();
+        this.topLeftY = bound.getTopLeftY();
+    }
+
     @Override
     public int getRowCount() {
         return rowCount;

@@ -1,5 +1,6 @@
 package com.yzx.matrix;
 
+import javax.swing.*;
 import java.util.BitSet;
 import java.util.Iterator;
 
@@ -8,12 +9,15 @@ import java.util.Iterator;
  */
 public class BitMatrix extends AbstractMatrix<Boolean> {
     private BitSet bitSet;
-    private int trueElementsCount;
 
     public BitMatrix(int rowCount, int columnCount, int resolution, double topLeftX, double topLeftY) {
         super(rowCount, columnCount, resolution, topLeftX, topLeftY);
         bitSet = new BitSet(rowCount*columnCount);
-        trueElementsCount = 0;
+    }
+
+    public BitMatrix(Bound bound) {
+        super(bound);
+        bitSet = new BitSet(rowCount*columnCount);
     }
 
     @Override
@@ -57,5 +61,19 @@ public class BitMatrix extends AbstractMatrix<Boolean> {
     @Override
     public void crop() {
 
+    }
+
+    public int getTrueElementsCount() {
+        return bitSet.cardinality();
+    }
+
+    public void print() {
+        for (int i = 0; i < rowCount; i++) {
+            for (int j = 0; j < columnCount; j++) {
+                System.out.print(get(i, j) ? "*" : "-");
+            }
+            System.out.println("");
+        }
+        System.out.println("");
     }
 }
