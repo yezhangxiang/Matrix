@@ -8,6 +8,10 @@ public class Bound {
     private final int resolution;
 
     public Bound(double topLeftX, double topLeftY, int rowCount, int columnCount, int resolution) {
+        if (rowCount < 0 || columnCount < 0) {
+            throw new IllegalArgumentException("Illegal capacity: row " + rowCount +
+            ", or column " + columnCount);
+        }
         this.topLeftX = topLeftX;
         this.topLeftY = topLeftY;
         this.rowCount = rowCount;
@@ -100,4 +104,7 @@ public class Bound {
         return new Bound(left, top, rowCount, columnCount, resolution);
     }
 
+    public int getCount() {
+        return rowCount * columnCount;
+    }
 }

@@ -7,9 +7,9 @@ import java.util.Map;
 public class MapMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
     private HashMap<Integer, E> elementData;
 
-    public MapMatrix(int rowCount, int columnCount, int resolution, double topLeftX, double topLeftY) {
-        super(rowCount, columnCount, resolution, topLeftX, topLeftY);
-        this.elementData = new HashMap<>();
+    public MapMatrix(Bound bound) {
+        super(bound);
+        elementData = new HashMap<>();
     }
 
     @Override
@@ -36,8 +36,7 @@ public class MapMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
 
     @Override
     public void clear() {
-        rowCount = 0;
-        columnCount = 0;
+        bound = new Bound(0, 0, 0, 0, 0);
         elementData.clear();
     }
 
@@ -47,7 +46,7 @@ public class MapMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
     }
 
     public Object clone() {
-        MapMatrix<E> mapMatrix = new MapMatrix<>(rowCount, columnCount, resolution, topLeftX, topLeftY);
+        MapMatrix<E> mapMatrix = new MapMatrix<>(bound);
         for (Map.Entry<Integer, E> integerEEntry : elementData.entrySet()) {
             mapMatrix.set(integerEEntry.getKey(), integerEEntry.getValue());
         }
@@ -71,12 +70,11 @@ public class MapMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
         int maxRow = 0;
         int maxColumn = 0;
         if (elementData.isEmpty()) {
-            rowCount = 0;
-            columnCount = 0;
+            bound = new Bound(0, 0, 0, 0, 0);
         } else {
             for (Integer globalIndex : elementData.keySet()) {
-                int rowIndex = globalIndex / columnCount;
-                int columnIndex = globalIndex % columnCount;
+                int rowIndex = globalIndex / bound.getColumnCount();
+                int columnIndex = globalIndex % bound.getColumnCount();
                 if (rowIndex < minRow) {
                     minRow = rowIndex;
                 }
@@ -94,16 +92,17 @@ public class MapMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
         int newColumnCount = maxColumn - minColumn + 1;
         HashMap<Integer, E> newElementData = new HashMap<>();
         for (Integer globalIndex : elementData.keySet()) {
-            int rowIndex = globalIndex / columnCount;
-            int columnIndex = globalIndex % columnCount;
+            int rowIndex = globalIndex / bound.getColumnCount();
+            int columnIndex = globalIndex % bound.getColumnCount();
             int newRowIndex = rowIndex - minRow;
             int newColumnIndex = columnIndex - minColumn;
             newElementData.put(newRowIndex * newColumnCount + newColumnIndex, elementData.get(globalIndex));
         }
-        topLeftX = topLeftY + minColumn * resolution;
-        topLeftY = topLeftY - minRow * resolution;
-        rowCount = maxRow - minRow + 1;
-        columnCount = newColumnCount;
+        double newTopLeftX = bound.getTopLeftY() + minColumn * bound.getResolution();
+        double newTopLeftY = bound.getTopLeftY() - minRow * bound.getResolution();
+        int newRowCount = maxRow - minRow + 1;
+
+        bound = new Bound(newTopLeftX, newTopLeftY, newRowCount, newColumnCount, bound.getResolution());
 
         elementData.clear();
         elementData = null;

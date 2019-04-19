@@ -16,17 +16,19 @@ public class MatrixTest {
 
     @Before
     public void setUp() throws Exception {
-        mapMatrix = new MapMatrix<>(5, 6, 1, 0.0, 0.0);
+        Bound bound = new Bound(0.0, 0.0, 5, 6, 1);
+        mapMatrix = new MapMatrix<>(bound);
         mapMatrix.set(0, 1, "r0_c1");
         mapMatrix.set(4, 1, "r4_c1");
         mapMatrix.set(3, 5, "r3_c5");
 
-        arrayMatrix = new ArrayMatrix<>(5, 6, 1, 0.0, 0.0);
+        arrayMatrix = new ArrayMatrix<>(bound);
         arrayMatrix.set(0, 1, "r0_c1");
         arrayMatrix.set(4, 1, "r4_c1");
         arrayMatrix.set(3, 5, "r3_c5");
 
-        bitMatrix = new BitMatrix(7, 6, 1, -3.0, 4.0);
+        Bound bitBound = new Bound(-3.0, 4.0, 7, 6, 1);
+        bitMatrix = new BitMatrix(bitBound);
         bitMatrix.set(0, 1, true);
         bitMatrix.set(4, 1, true);
         bitMatrix.set(3, 5, true);

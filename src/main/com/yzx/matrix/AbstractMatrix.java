@@ -3,45 +3,26 @@ package com.yzx.matrix;
 import java.util.Iterator;
 
 public abstract class AbstractMatrix<E> implements Matrix<E> {
-    int rowCount;
-    int columnCount;
-    final int resolution;
-    double topLeftX;
-    double topLeftY;
-
-    public AbstractMatrix(int rowCount, int columnCount, int resolution, double topLeftX, double topLeftY) {
-        this.resolution = resolution;
-        this.topLeftX = topLeftX;
-        this.topLeftY = topLeftY;
-        if (rowCount < 0 || columnCount < 0)
-            throw new IllegalArgumentException("Illegal Capacity: "+
-            rowCount + ", or " + columnCount);
-
-        this.rowCount = rowCount;
-        this.columnCount = columnCount;
-    }
+    public static final int invalidIndex = -1;
+    Bound bound;
 
     public AbstractMatrix(Bound bound) {
-        this.resolution = bound.getResolution();
-        this.rowCount = bound.getRowCount();
-        this.columnCount = bound.getColumnCount();
-        this.topLeftX = bound.getTopLeftX();
-        this.topLeftY = bound.getTopLeftY();
+        this.bound = bound;
     }
 
     @Override
     public int getRowCount() {
-        return rowCount;
+        return bound.getRowCount();
     }
 
     @Override
     public int getColumnCount() {
-        return columnCount;
+        return bound.getColumnCount();
     }
 
     @Override
     public int getCount() {
-        return rowCount * columnCount;
+        return bound.getCount();
     }
 
     @Override
@@ -51,6 +32,7 @@ public abstract class AbstractMatrix<E> implements Matrix<E> {
 
     @Override
     public void set(int flatIndex, E element) {
+        int columnCount = bound.getColumnCount();
         int rowIndex = flatIndex / columnCount;
         int columnIndex = flatIndex % columnCount;
         set(rowIndex, columnIndex, element);
@@ -61,74 +43,73 @@ public abstract class AbstractMatrix<E> implements Matrix<E> {
     }
 
     protected void rangeCheck(int rowIndex, int columnIndex) {
-        if (rowIndex >= rowCount || columnIndex >= columnCount)
+        if (rowIndex >= bound.getRowCount() || columnIndex >= bound.getColumnCount())
             throw new IndexOutOfBoundsException(outOfBoundsMsg(rowIndex, columnIndex));
     }
 
     private String outOfBoundsMsg(int rowIndex, int columnIndex) {
         return "Row index: " + rowIndex + ", row size: " + rowIndex +
-                "; Column index: " + columnIndex + ", column size: " + columnCount;
+                "; Column index: " + columnIndex + ", column size: " + bound.getColumnCount();
     }
 
     @Override
     public double getTopLeftX() {
-        return topLeftX;
+        return bound.getTopLeftX();
     }
 
     @Override
     public double getTopLeftY() {
-        return topLeftY;
+        return bound.getTopLeftY();
     }
 
     @Override
     public double getBottomRightX() {
-        return topLeftX + columnCount * resolution;
+        return bound.getBottomRightX();
     }
 
     @Override
     public double getBottomRightY() {
-        return topLeftY - rowCount * resolution;
+        return bound.getBottomRightY();
     }
 
     @Override
     public int getResolution() {
-        return resolution;
+        return bound.getResolution();
     }
 
     @Override
     public boolean isInside(Point point) {
-        return point.getX() < getBottomRightX() && point.getX() >= topLeftX &&
-                point.getY() <= topLeftY && point.getY() > getBottomRightY();
+        return bound.isInside(point);
     }
 
     @Override
     public int getStartRow(Matrix matrix) {
-        return (int)(topLeftY - matrix.getTopLeftY()) / resolution;
+        return (int)(bound.getTopLeftY() - matrix.getTopLeftY()) / bound.getResolution();
     }
 
     @Override
     public int getStartColumn(Matrix matrix) {
-        return (int)(-topLeftX + matrix.getTopLeftX()) / resolution;
+        return (int)(-bound.getTopLeftX() + matrix.getTopLeftX()) / bound.getResolution();
     }
 
     @Override
     public int getFlatIndex(Index index) {
-        return index.getRowIndex() * columnCount + index.getColumnIndex();
+        return index.getRowIndex() * bound.getColumnCount() + index.getColumnIndex();
     }
 
     @Override
     public int getFlatIndex(int rowIndex, int columnIndex) {
-        return rowIndex * columnCount + columnIndex;
+        return rowIndex * bound.getColumnCount() + columnIndex;
     }
 
 
     @Override
     public Index getIndex(int flatIndex) {
-        if (-1 == flatIndex) {
+        if (invalidIndex == flatIndex) {
             return null;
         }
-        int rowIndex = flatIndex / columnCount;
-        int columnIndex = flatIndex % columnCount;
+        int rowIndex = flatIndex / bound.getColumnCount();
+        int columnIndex = flatIndex % bound.getColumnCount();
         return new Index(rowIndex, columnIndex);
     }
 
@@ -136,9 +117,9 @@ public abstract class AbstractMatrix<E> implements Matrix<E> {
     public Index getIndex(Matrix<?> matrix, Index matrixIndex) {
         double x = matrix.getTopLeftX() + matrixIndex.getColumnIndex() * matrix.getResolution();
         double y = matrix.getTopLeftY() - matrixIndex.getRowIndex() * matrix.getResolution();
-        int rowIndex = (int) ((x - topLeftX) / resolution);
-        int columnIndex = (int) ((topLeftY - y) / resolution);
-        if (rowIndex < 0 || rowIndex >= rowCount || columnIndex < 0 || columnIndex >= columnCount) {
+        int rowIndex = (int) ((x - bound.getTopLeftX()) / bound.getResolution());
+        int columnIndex = (int) ((bound.getTopLeftY() - y) / bound.getResolution());
+        if (rowIndex < 0 || rowIndex >= bound.getRowCount() || columnIndex < 0 || columnIndex >= bound.getColumnCount()) {
             return null;
         }
         return new Index(rowIndex, columnIndex);
@@ -149,21 +130,21 @@ public abstract class AbstractMatrix<E> implements Matrix<E> {
         if (!isInside(point)) {
             return null;
         }
-        int rowIndex = (int) ((point.getX() - topLeftX) / resolution);
-        int columnIndex = (int) ((topLeftY - point.getY()) / resolution);
+        int rowIndex = (int) ((point.getX() - bound.getTopLeftX()) / bound.getResolution());
+        int columnIndex = (int) ((bound.getTopLeftY() - point.getY()) / bound.getResolution());
         return new Index(rowIndex, columnIndex);
     }
 
     @Override
     public Point getPoint(Index index) {
-        double x = topLeftX + index.getColumnIndex() * resolution;
-        double y = topLeftY - index.getRowIndex() * resolution;
+        double x = bound.getTopLeftX() + index.getColumnIndex() * bound.getResolution();
+        double y = bound.getTopLeftY() - index.getRowIndex() * bound.getResolution();
         return new Point(x, y);
     }
 
     @Override
     public Bound getBound() {
-        return new Bound(topLeftX, topLeftY, rowCount, columnCount, resolution);
+        return new Bound(bound.getTopLeftX(), bound.getTopLeftY(), bound.getRowCount(), bound.getColumnCount(), bound.getResolution());
     }
 
     class arrayIterator implements Iterator<E> {
@@ -184,8 +165,8 @@ public abstract class AbstractMatrix<E> implements Matrix<E> {
         private int currentColumnIndex;
         @Override
         public boolean hasNext() {
-            for (; currentRowIndex < rowCount; currentRowIndex++) {
-                for (; currentColumnIndex < columnCount; currentColumnIndex++) {
+            for (; currentRowIndex < bound.getRowCount(); currentRowIndex++) {
+                for (; currentColumnIndex < bound.getColumnCount(); currentColumnIndex++) {
                     if (null != get(currentRowIndex, currentColumnIndex)) {
                         return true;
                     }
@@ -201,8 +182,8 @@ public abstract class AbstractMatrix<E> implements Matrix<E> {
             int index;
             do {
                 o = get(currentRowIndex, currentColumnIndex);
-                index = currentRowIndex * columnCount + currentColumnIndex;
-                if (currentColumnIndex == columnCount - 1) {
+                index = currentRowIndex * bound.getColumnCount() + currentColumnIndex;
+                if (currentColumnIndex == bound.getColumnCount() - 1) {
                     currentRowIndex++;
                     currentColumnIndex = 0;
                 } else {

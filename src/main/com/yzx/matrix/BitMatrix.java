@@ -6,25 +6,20 @@ import java.util.Iterator;
 public class BitMatrix extends AbstractMatrix<Boolean> {
     private BitSet bitSet;
 
-    public BitMatrix(int rowCount, int columnCount, int resolution, double topLeftX, double topLeftY) {
-        super(rowCount, columnCount, resolution, topLeftX, topLeftY);
-        bitSet = new BitSet(rowCount*columnCount);
-    }
-
     public BitMatrix(Bound bound) {
         super(bound);
-        bitSet = new BitSet(rowCount*columnCount);
+        bitSet = new BitSet(bound.getRowCount()*bound.getColumnCount());
     }
 
     @Override
     public int getEffectiveCount() {
-        return rowCount * columnCount;
+        return bound.getRowCount() * bound.getColumnCount();
     }
 
     @Override
     public Boolean get(int rowIndex, int columnIndex) {
         rangeCheck(rowIndex, columnIndex);
-        int flatIndex = rowIndex * columnCount + columnIndex;
+        int flatIndex = rowIndex * bound.getColumnCount() + columnIndex;
         return get(flatIndex);
     }
 
@@ -35,20 +30,19 @@ public class BitMatrix extends AbstractMatrix<Boolean> {
 
     @Override
     public void set(int rowIndex, int columnIndex, Boolean element) {
-        int flatIndex = rowIndex * columnCount + columnIndex;
+        int flatIndex = rowIndex * bound.getColumnCount() + columnIndex;
         bitSet.set(flatIndex, element);
     }
 
     @Override
     public void clear() {
-        rowCount = 0;
-        columnCount = 0;
+        bound = new Bound(0, 0, 0, 0, 0);
         bitSet.clear();
     }
 
     @Override
     public boolean isEmpty() {
-        return rowCount == 0 && columnCount == 0;
+        return bound.getRowCount() == 0 && bound.getColumnCount() == 0;
     }
 
     @Override
@@ -71,8 +65,8 @@ public class BitMatrix extends AbstractMatrix<Boolean> {
     }
 
     public void print() {
-        for (int i = 0; i < rowCount; i++) {
-            for (int j = 0; j < columnCount; j++) {
+        for (int i = 0; i < bound.getRowCount(); i++) {
+            for (int j = 0; j < bound.getColumnCount(); j++) {
                 System.out.print(get(i, j) ? "*" : "-");
             }
             System.out.println("");

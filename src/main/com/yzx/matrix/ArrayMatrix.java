@@ -6,9 +6,9 @@ public class ArrayMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
     private Object[][] elementData;
     private int effectiveCount;
 
-    public ArrayMatrix(int rowCount, int columnCount, int resolution, double topLeftX, double topLeftY) {
-        super(rowCount, columnCount, resolution, topLeftX, topLeftY);
-        this.elementData = new Object[rowCount][columnCount];
+    public ArrayMatrix(Bound bound) {
+        super(bound);
+        this.elementData = new Object[bound.getRowCount()][bound.getColumnCount()];
         this.effectiveCount = 0;
     }
 
@@ -31,8 +31,8 @@ public class ArrayMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
 
     @Override
     public E get(int flatIndex) {
-        int rowIndex = flatIndex / columnCount;
-        int columnIndex = flatIndex % columnCount;
+        int rowIndex = flatIndex / bound.getColumnCount();
+        int columnIndex = flatIndex % bound.getColumnCount();
         return get(rowIndex, columnIndex);
     }
 
@@ -47,13 +47,12 @@ public class ArrayMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
 
     @Override
     public void clear() {
-        for (int i = 0; i < rowCount; i++) {
-            for (int j = 0; j < columnCount; j++) {
+        for (int i = 0; i < bound.getRowCount(); i++) {
+            for (int j = 0; j < bound.getColumnCount(); j++) {
                 elementData[i][j] = null;
             }
         }
-        rowCount = 0;
-        columnCount = 0;
+        bound = new Bound(0, 0, 0, 0, 0);
         effectiveCount = 0;
     }
 
@@ -71,9 +70,9 @@ public class ArrayMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
 
     @Override
     public Object clone() {
-        ArrayMatrix arrayMatrix = new ArrayMatrix(rowCount, columnCount, resolution, topLeftX, topLeftY);
-        for (int i = 0; i < rowCount; i++) {
-            for (int j = 0; j < columnCount; j++) {
+        ArrayMatrix arrayMatrix = new ArrayMatrix(bound);
+        for (int i = 0; i < bound.getRowCount(); i++) {
+            for (int j = 0; j < bound.getColumnCount(); j++) {
                 if (null != elementData[i][j]) {
                     arrayMatrix.set(i, j, elementData[i][j]);
                 }
@@ -99,11 +98,10 @@ public class ArrayMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
         int maxRow = 0;
         int maxColumn = 0;
         if (0 == effectiveCount) {
-            rowCount = 0;
-            columnCount = 0;
+            bound = new Bound(0, 0, 0, 0, 0);
         } else {
-            for (int rowIndex = 0; rowIndex < rowCount; rowIndex++) {
-                for (int columnIndex = 0; columnIndex < columnCount; columnIndex++) {
+            for (int rowIndex = 0; rowIndex < bound.getRowCount(); rowIndex++) {
+                for (int columnIndex = 0; columnIndex < bound.getColumnCount(); columnIndex++) {
                     if (null == elementData[rowIndex][columnIndex]) {
                         continue;
                     }
@@ -125,8 +123,8 @@ public class ArrayMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
         int newRowCount = maxRow - minRow + 1;
         int newColumnCount = maxColumn - minColumn + 1;
         Object[][] newElementData = new Object[newRowCount][newColumnCount];
-        for (int rowIndex = 0; rowIndex < rowCount; rowIndex++) {
-            for (int columnIndex = 0; columnIndex < columnCount; columnIndex++) {
+        for (int rowIndex = 0; rowIndex < bound.getRowCount(); rowIndex++) {
+            for (int columnIndex = 0; columnIndex < bound.getColumnCount(); columnIndex++) {
                 if (null == elementData[rowIndex][columnIndex]) {
                     continue;
                 }
@@ -135,12 +133,9 @@ public class ArrayMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
                 newElementData[newRowIndex][newColumnIndex] = elementData[rowIndex][columnIndex];
             }
         }
-        topLeftX = topLeftY + minColumn * resolution;
-        topLeftY = topLeftY - minRow * resolution;
-        rowCount = newRowCount;
-        columnCount = newColumnCount;
-
-        elementData = null;
+        double newTopLeftX = bound.getTopLeftY() + minColumn * bound.getResolution();
+        double newTopLeftY = bound.getTopLeftY() - minRow * bound.getResolution();
+        bound = new Bound(newTopLeftX, newTopLeftY, newRowCount, newColumnCount, bound.getResolution());
         elementData = newElementData;
     }
 
