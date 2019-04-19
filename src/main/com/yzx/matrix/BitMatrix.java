@@ -1,12 +1,8 @@
 package com.yzx.matrix;
 
-import javax.swing.*;
 import java.util.BitSet;
 import java.util.Iterator;
 
-/**
- * Created by kele on 2019/4/14.
- */
 public class BitMatrix extends AbstractMatrix<Boolean> {
     private BitSet bitSet;
 
@@ -41,6 +37,13 @@ public class BitMatrix extends AbstractMatrix<Boolean> {
     public void set(int rowIndex, int columnIndex, Boolean element) {
         int flatIndex = rowIndex * columnCount + columnIndex;
         bitSet.set(flatIndex, element);
+    }
+
+    @Override
+    public void clear() {
+        rowCount = 0;
+        columnCount = 0;
+        bitSet.clear();
     }
 
     @Override

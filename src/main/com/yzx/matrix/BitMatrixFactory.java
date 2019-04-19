@@ -2,9 +2,6 @@ package com.yzx.matrix;
 
 import java.util.*;
 
-/**
- * Created by kele on 2019/4/14.
- */
 public class BitMatrixFactory {
 
     static class Edge {

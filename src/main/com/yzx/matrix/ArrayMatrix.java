@@ -3,7 +3,7 @@ package com.yzx.matrix;
 import java.util.Iterator;
 
 public class ArrayMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
-    protected Object[][] elementData;
+    private Object[][] elementData;
     private int effectiveCount;
 
     public ArrayMatrix(int rowCount, int columnCount, int resolution, double topLeftX, double topLeftY) {
@@ -43,6 +43,18 @@ public class ArrayMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
             effectiveCount++;
         }
         elementData[rowIndex][columnIndex] = element;
+    }
+
+    @Override
+    public void clear() {
+        for (int i = 0; i < rowCount; i++) {
+            for (int j = 0; j < columnCount; j++) {
+                elementData[i][j] = null;
+            }
+        }
+        rowCount = 0;
+        columnCount = 0;
+        effectiveCount = 0;
     }
 
     @Override

@@ -2,9 +2,6 @@ package com.yzx.matrix;
 
 import java.util.List;
 
-/**
- * Created by kele on 2019/4/14.
- */
 public class Polygon {
     private final List<Point> points;
 

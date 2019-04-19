@@ -10,23 +10,39 @@ public interface Matrix<E> {
     double getBottomRightY();
     int getRowCount();
     int getColumnCount();
+    int getCount();
     int getEffectiveCount();
     int getResolution();
+    boolean isEmpty();
+    boolean isInside(Point point);
+
+
+    E get(Index index);
     E get(int rowIndex, int columnIndex);
-
     E get(int flatIndex);
-    E get(double x, double y);
 
+    void set(Index index, E element);
     void set(int rowIndex, int columnIndex, E element);
     void set(int flatIndex, E element);
-    void set(double x, double y, E element);
-    boolean isEmpty();
+
+    void clear();
 
     Iterator<E> iterator();
-
     Iterator<Integer> keyIterator();
+
     int getStartRow(Matrix matrix);
     int getStartColumn(Matrix matrix);
+
+    int getFlatIndex(Index index);
+    int getFlatIndex(int rowIndex, int columnIndex);
+
+    Index getIndex(int flatIndex);
+    Index getIndex(Matrix<?> matrix, Index matrixIndex);
+    Index getIndex(Point point);
+
+    Point getPoint(Index index);
+
+    Bound getBound();
 
     void crop();
 }

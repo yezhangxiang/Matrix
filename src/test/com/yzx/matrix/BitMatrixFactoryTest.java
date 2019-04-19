@@ -7,9 +7,6 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-/**
- * Created by kele on 2019/4/14.
- */
 public class BitMatrixFactoryTest {
     @Test
     public void createByScanLine() throws Exception {

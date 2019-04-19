@@ -9,9 +9,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-/**
- * Created by kele on 2019/4/13.
- */
 public class MatrixTest {
     MapMatrix<String> mapMatrix;
     ArrayMatrix<String> arrayMatrix;
@@ -33,6 +30,67 @@ public class MatrixTest {
         bitMatrix.set(0, 1, true);
         bitMatrix.set(4, 1, true);
         bitMatrix.set(3, 5, true);
+    }
+
+    @Test
+    public void getCount() throws Exception {
+        assertEquals(30, mapMatrix.getCount());
+        assertEquals(30, arrayMatrix.getCount());
+        assertEquals(42, bitMatrix.getCount());
+    }
+
+    @Test
+    public void clear() throws Exception {
+        mapMatrix.clear();
+        assertEquals(0, mapMatrix.getEffectiveCount());
+        assertEquals(0, mapMatrix.getCount());
+
+        arrayMatrix.clear();
+        assertEquals(0, arrayMatrix.getEffectiveCount());
+        assertEquals(0, arrayMatrix.getCount());
+
+        bitMatrix.clear();
+        assertEquals(0, bitMatrix.getEffectiveCount());
+        assertEquals(0, bitMatrix.getCount());
+    }
+
+    @Test
+    public void getFlatIndex() throws Exception {
+        assertEquals(0, mapMatrix.getFlatIndex(new Index(0, 0)));
+        assertEquals(0, mapMatrix.getFlatIndex(0, 0));
+    }
+
+    @Test
+    public void getIndex() throws Exception {
+        Index index = mapMatrix.getIndex(arrayMatrix, new Index(3, 4));
+        assert index.getRowIndex() == 3;
+        assert index.getColumnIndex() == 4;
+
+        Index index1 = mapMatrix.getIndex(0);
+        assert index1.getRowIndex() == 0;
+        assert index1.getColumnIndex() == 0;
+
+        Index index2 = mapMatrix.getIndex(new Point(3.4, 2.4));
+        assert index2.getRowIndex() == 3;
+        assert index2.getColumnIndex() == 4;
+    }
+
+    @Test
+    public void getPoint() throws Exception {
+        Point point = mapMatrix.getPoint(new Index(0, 0));
+        assertEquals(0.0, point.getX(), 0.0);
+        assertEquals(0.0, point.getX(), 0.0);
+
+    }
+
+    @Test
+    public void getBound() throws Exception {
+        Bound bound = mapMatrix.getBound();
+        assert bound.getTopLeftX() == 0.0;
+        assert bound.getTopLeftY() == 0.0;
+        assert bound.getResolution() == 1;
+        assert bound.getRowCount() == 5;
+        assert bound.getColumnCount() == 6;
     }
 
     @Test

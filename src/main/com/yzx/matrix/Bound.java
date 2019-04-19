@@ -1,8 +1,5 @@
 package com.yzx.matrix;
 
-/**
- * Created by kele on 2019/4/14.
- */
 public class Bound {
     private final double topLeftX;
     private final double topLeftY;
@@ -45,4 +42,62 @@ public class Bound {
     public int getResolution() {
         return resolution;
     }
+
+    public double getBottomRightX() {
+        return topLeftX + columnCount * resolution;
+    }
+
+    public double getBottomRightY() {
+        return topLeftY - rowCount * resolution;
+    }
+
+    public final Index getFlatIndex(Point point) {
+        if (!isInside(point)) {
+            return null;
+        }
+        int columnIndex = (int) ((point.getX() - topLeftX) / resolution);
+        int rowIndex = (int) ((topLeftY - point.getY()) / resolution);
+        return new Index(rowIndex, columnIndex);
+    }
+
+    public boolean isInside(Point point) {
+        return point.getX() < getBottomRightX() && point.getX() >= topLeftX &&
+                point.getY() <= topLeftY && point.getY() > getBottomRightY();
+    }
+
+    public Point getPoint(Index index) {
+        double x = topLeftX + index.getColumnIndex() * resolution;
+        double y = topLeftY - index.getRowIndex() * resolution;
+        return new Point(x, y);
+    }
+
+    public Bound intersect(Bound bound) {
+        if (bound.resolution != resolution) {
+            throw new UnsupportedOperationException();
+        }
+        double left = Math.max(topLeftX, bound.topLeftX);
+        double right = Math.min(getBottomRightX(), bound.getBottomRightX());
+        double bottom = Math.max(getBottomRightY(), bound.getBottomRightY());
+        double top = Math.min(topLeftY, bound.topLeftY);
+        if (left >= right || bottom >= top) {
+            return null;
+        }
+        int rowCount = (int) ((top - bottom) / resolution);
+        int columnCount = (int) ((right - left) / resolution);
+        return new Bound(left, top, rowCount, columnCount, resolution);
+    }
+
+    public Bound union(Bound bound) {
+        if (bound.resolution != resolution) {
+            throw new UnsupportedOperationException();
+        }
+        double left = Math.min(topLeftX, bound.topLeftX);
+        double right = Math.max(getBottomRightX(), bound.getBottomRightX());
+        double bottom = Math.min(getBottomRightY(), bound.getBottomRightY());
+        double top = Math.max(topLeftY, bound.topLeftY);
+        int rowCount = (int) ((top - bottom) / resolution);
+        int columnCount = (int) ((right - left) / resolution);
+        return new Bound(left, top, rowCount, columnCount, resolution);
+    }
+
 }

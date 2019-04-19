@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 public class MapMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
-    HashMap<Integer, E> elementData;
+    private HashMap<Integer, E> elementData;
 
     public MapMatrix(int rowCount, int columnCount, int resolution, double topLeftX, double topLeftY) {
         super(rowCount, columnCount, resolution, topLeftX, topLeftY);
@@ -20,7 +20,7 @@ public class MapMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
     @Override
     public E get(int rowIndex, int columnIndex) {
         rangeCheck(rowIndex, columnIndex);
-        return elementData.get(getGlobalIndex(rowIndex, columnIndex));
+        return elementData.get(getFlatIndex(rowIndex, columnIndex));
     }
 
     @Override
@@ -31,7 +31,14 @@ public class MapMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
     @Override
     public void set(int rowIndex, int columnIndex, E element) {
         rangeCheck(rowIndex, columnIndex);
-        elementData.put(getGlobalIndex(rowIndex, columnIndex), element);
+        elementData.put(getFlatIndex(rowIndex, columnIndex), element);
+    }
+
+    @Override
+    public void clear() {
+        rowCount = 0;
+        columnCount = 0;
+        elementData.clear();
     }
 
     @Override

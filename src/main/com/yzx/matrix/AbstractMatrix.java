@@ -3,11 +3,11 @@ package com.yzx.matrix;
 import java.util.Iterator;
 
 public abstract class AbstractMatrix<E> implements Matrix<E> {
-    protected int rowCount;
-    protected int columnCount;
-    protected final int resolution;
-    protected double topLeftX;
-    protected double topLeftY;
+    int rowCount;
+    int columnCount;
+    final int resolution;
+    double topLeftX;
+    double topLeftY;
 
     public AbstractMatrix(int rowCount, int columnCount, int resolution, double topLeftX, double topLeftY) {
         this.resolution = resolution;
@@ -40,18 +40,13 @@ public abstract class AbstractMatrix<E> implements Matrix<E> {
     }
 
     @Override
-    public E get(double x, double y) {
-        int columnIndex = (int)((x - topLeftX) / resolution);
-        int rowIndex = (int)((topLeftY - y) / resolution);
-
-        if (rowIndex >= rowCount || columnIndex >= columnCount)
-            return null;
-
-        return get(rowIndex, columnIndex);
+    public int getCount() {
+        return rowCount * columnCount;
     }
 
-    protected int getGlobalIndex(int rowIndex, int columnIndex) {
-        return rowIndex * columnCount + columnIndex;
+    @Override
+    public E get(Index index) {
+        return get(index.getColumnIndex(), index.getRowIndex());
     }
 
     @Override
@@ -60,12 +55,9 @@ public abstract class AbstractMatrix<E> implements Matrix<E> {
         int columnIndex = flatIndex % columnCount;
         set(rowIndex, columnIndex, element);
     }
-
     @Override
-    public void set(double x, double y, E element) {
-        int columnIndex = (int) ((x - topLeftX) / resolution);
-        int rowIndex = (int) ((topLeftY - y) / resolution);
-        set(columnIndex, rowIndex, element);
+    public void set(Index index, E element) {
+        set(index.getRowIndex(), index.getColumnIndex(), element);
     }
 
     protected void rangeCheck(int rowIndex, int columnIndex) {
@@ -75,7 +67,7 @@ public abstract class AbstractMatrix<E> implements Matrix<E> {
 
     private String outOfBoundsMsg(int rowIndex, int columnIndex) {
         return "Row index: " + rowIndex + ", row size: " + rowIndex +
-                "; Column index: " + columnIndex + ", cloumn size: " + columnCount;
+                "; Column index: " + columnIndex + ", column size: " + columnCount;
     }
 
     @Override
@@ -104,6 +96,12 @@ public abstract class AbstractMatrix<E> implements Matrix<E> {
     }
 
     @Override
+    public boolean isInside(Point point) {
+        return point.getX() < getBottomRightX() && point.getX() >= topLeftX &&
+                point.getY() <= topLeftY && point.getY() > getBottomRightY();
+    }
+
+    @Override
     public int getStartRow(Matrix matrix) {
         return (int)(topLeftY - matrix.getTopLeftY()) / resolution;
     }
@@ -111,6 +109,61 @@ public abstract class AbstractMatrix<E> implements Matrix<E> {
     @Override
     public int getStartColumn(Matrix matrix) {
         return (int)(-topLeftX + matrix.getTopLeftX()) / resolution;
+    }
+
+    @Override
+    public int getFlatIndex(Index index) {
+        return index.getRowIndex() * columnCount + index.getColumnIndex();
+    }
+
+    @Override
+    public int getFlatIndex(int rowIndex, int columnIndex) {
+        return rowIndex * columnCount + columnIndex;
+    }
+
+
+    @Override
+    public Index getIndex(int flatIndex) {
+        if (-1 == flatIndex) {
+            return null;
+        }
+        int rowIndex = flatIndex / columnCount;
+        int columnIndex = flatIndex % columnCount;
+        return new Index(rowIndex, columnIndex);
+    }
+
+    @Override
+    public Index getIndex(Matrix<?> matrix, Index matrixIndex) {
+        double x = matrix.getTopLeftX() + matrixIndex.getColumnIndex() * matrix.getResolution();
+        double y = matrix.getTopLeftY() - matrixIndex.getRowIndex() * matrix.getResolution();
+        int rowIndex = (int) ((x - topLeftX) / resolution);
+        int columnIndex = (int) ((topLeftY - y) / resolution);
+        if (rowIndex < 0 || rowIndex >= rowCount || columnIndex < 0 || columnIndex >= columnCount) {
+            return null;
+        }
+        return new Index(rowIndex, columnIndex);
+    }
+
+    @Override
+    public Index getIndex(Point point) {
+        if (!isInside(point)) {
+            return null;
+        }
+        int rowIndex = (int) ((point.getX() - topLeftX) / resolution);
+        int columnIndex = (int) ((topLeftY - point.getY()) / resolution);
+        return new Index(rowIndex, columnIndex);
+    }
+
+    @Override
+    public Point getPoint(Index index) {
+        double x = topLeftX + index.getColumnIndex() * resolution;
+        double y = topLeftY - index.getRowIndex() * resolution;
+        return new Point(x, y);
+    }
+
+    @Override
+    public Bound getBound() {
+        return new Bound(topLeftX, topLeftY, rowCount, columnCount, resolution);
     }
 
     class arrayIterator implements Iterator<E> {
