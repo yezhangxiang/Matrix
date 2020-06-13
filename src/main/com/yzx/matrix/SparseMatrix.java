@@ -5,10 +5,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public class MapMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
+public class SparseMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
     ArrayList<HashMap<Integer, E>> elementData;
 
-    public MapMatrix(Bound bound) {
+    public SparseMatrix(Bound bound) {
         super(bound);
         elementData = new ArrayList<>();
         for (int i = 0; i < getFloorCount(); i++) {
@@ -16,7 +16,7 @@ public class MapMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
         }
     }
 
-    public MapMatrix(Bound bound, int floorCount) {
+    public SparseMatrix(Bound bound, int floorCount) {
         super(bound, floorCount);
         elementData = new ArrayList<>();
         for (int i = 0; i < getFloorCount(); i++) {
@@ -68,12 +68,12 @@ public class MapMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
 
     public Object clone() {
         try {
-            MapMatrix<E> mapMatrix = (MapMatrix<E>) super.clone();
-            mapMatrix.elementData = (ArrayList<HashMap<Integer, E>>) elementData.clone();
-            for (int i = 0; i < mapMatrix.elementData.size(); i++) {
-                mapMatrix.elementData.set(i, elementData.get(i));
+            SparseMatrix<E> sparseMatrix = (SparseMatrix<E>) super.clone();
+            sparseMatrix.elementData = (ArrayList<HashMap<Integer, E>>) elementData.clone();
+            for (int i = 0; i < sparseMatrix.elementData.size(); i++) {
+                sparseMatrix.elementData.set(i, elementData.get(i));
             }
-            return mapMatrix;
+            return sparseMatrix;
         } catch (CloneNotSupportedException e) {
             throw new AssertionError();
         }
