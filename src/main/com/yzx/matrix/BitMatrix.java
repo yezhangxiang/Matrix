@@ -96,7 +96,7 @@ public class BitMatrix extends AbstractMatrix<Boolean> {
     }
 
     @Override
-    public Iterator<Boolean> iterator() {
+    public Iterator<Cursor<Index, Boolean>> iterator() {
         return new MatrixIterator();
     }
 

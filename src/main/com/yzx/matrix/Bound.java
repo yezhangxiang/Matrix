@@ -12,7 +12,7 @@ public class Bound {
     public Bound(double topLeftX, double topLeftY, int rowCount, int columnCount, int resolution) {
         if (rowCount < 0 || columnCount < 0) {
             throw new IllegalArgumentException("Illegal capacity: row " + rowCount +
-            ", or column " + columnCount);
+                    ", or column " + columnCount);
         }
         this.topLeftX = topLeftX;
         this.topLeftY = topLeftY;

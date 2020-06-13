@@ -61,7 +61,7 @@ public class ArrayMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
     }
 
     @Override
-    public Iterator<E> iterator() {
+    public Iterator<Cursor<Index, E>> iterator() {
         return new MatrixIterator();
     }
 

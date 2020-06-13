@@ -7,18 +7,6 @@ import java.util.*;
 
 public class BitMatrixFactory {
 
-    static class Edge {
-        double yMin;
-        double x;
-        double dx;
-
-        Edge(double yMin, double x, double dx) {
-            this.yMin = yMin;
-            this.x = x;
-            this.dx = dx;
-        }
-    }
-
     public static BitMatrix createByScanLine(Polygon polygon, int resolution) {
         Bound bound = polygon.getBound(resolution);
         BitMatrix bitMatrix = new BitMatrix(bound);
@@ -52,9 +40,9 @@ public class BitMatrixFactory {
     }
 
     private static void fillAetScanLine(List<Edge> activeEdgeTable, int i, BitMatrix bitMatrix) {
-        for (int j = 0; j < activeEdgeTable.size(); j+=2) {
+        for (int j = 0; j < activeEdgeTable.size(); j += 2) {
             double xIn = activeEdgeTable.get(j).x;
-            double xOut = activeEdgeTable.get(j+1).x;
+            double xOut = activeEdgeTable.get(j + 1).x;
             int indexIn = (int) ((xIn - bitMatrix.getTopLeftX()) / bitMatrix.getResolution());
             int indexOut = (int) Math.ceil((xOut - bitMatrix.getTopLeftX()) / bitMatrix.getResolution());
             for (int k = indexIn; k < indexOut; k++) {
@@ -94,9 +82,9 @@ public class BitMatrixFactory {
 
         for (int i = 0; i < points.size(); i++) {
             double x1 = points.get(i).getX();
-            double x2 = points.get((i+1) % points.size()).getX();
+            double x2 = points.get((i + 1) % points.size()).getX();
             double y1 = points.get(i).getY();
-            double y2 = points.get((i+1) % points.size()).getY();
+            double y2 = points.get((i + 1) % points.size()).getY();
 
             double yMin = y1 > y2 ? y2 : y1;
             double yMax = y1 > y2 ? y1 : y2;
@@ -119,5 +107,17 @@ public class BitMatrixFactory {
             edgeList.add(edge);
         }
         return edgeTable;
+    }
+
+    static class Edge {
+        double yMin;
+        double x;
+        double dx;
+
+        Edge(double yMin, double x, double dx) {
+            this.yMin = yMin;
+            this.x = x;
+            this.dx = dx;
+        }
     }
 }

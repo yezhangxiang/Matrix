@@ -80,7 +80,7 @@ public class SparseMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
     }
 
     @Override
-    public Iterator<E> iterator() {
+    public Iterator<Cursor<Index, E>> iterator() {
         return new mapIterator();
     }
 
@@ -119,7 +119,7 @@ public class SparseMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
 
         @Override
         public Index next() {
-            int floorFlatIndex= keyIterator.next().getKey();
+            int floorFlatIndex = keyIterator.next().getKey();
             int rowIndex = floorFlatIndex / bound.getColumnCount();
             int columnIndex = floorFlatIndex % bound.getColumnCount();
             return new Index(floorCursor, rowIndex, columnIndex);
@@ -150,7 +150,7 @@ public class SparseMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
         }
     }
 
-    private class mapIterator implements Iterator<E> {
+    private class mapIterator implements Iterator<Matrix.Cursor<Index, E>> {
         private Iterator<Index> mapIndexItr = new MapIndexItr();
 
         @Override
@@ -159,8 +159,9 @@ public class SparseMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
         }
 
         @Override
-        public E next() {
-            return get(mapIndexItr.next());
+        public Cursor<Index, E> next() {
+            Index index = mapIndexItr.next();
+            return new SimpleCursor<>(index, get(index));
         }
 
         @Override

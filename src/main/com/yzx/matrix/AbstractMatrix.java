@@ -6,9 +6,9 @@ import java.util.Iterator;
 
 public abstract class AbstractMatrix<E> implements Matrix<E> {
     public static final int INVALID_FLAT_INDEX = -1;
-    private static double floorInterval = 3;
-    private static int  maxFloor = 10;
     protected static final int DEFAULT_FLOOR_INDEX = 0;
+    private static double floorInterval = 3;
+    private static int maxFloor = 10;
     int floorCount;
     Bound bound;
 
@@ -22,6 +22,16 @@ public abstract class AbstractMatrix<E> implements Matrix<E> {
             throw new IllegalArgumentException("Illegal Capacity: floor " + floorCount);
         this.bound = bound;
         this.floorCount = floorCount;
+    }
+
+    /**
+     * Utility method for SimpleEntry and SimpleImmutableEntry.
+     * Test for equality, checking for nulls.
+     * <p>
+     * NB: Do not replace with Object.equals until JDK-8015417 is resolved.
+     */
+    private static boolean eq(Object o1, Object o2) {
+        return o1 == null ? o2 == null : o1.equals(o2);
     }
 
     @Override
@@ -65,7 +75,6 @@ public abstract class AbstractMatrix<E> implements Matrix<E> {
     public void set(int rowIndex, int columnIndex, E element) {
         set(DEFAULT_FLOOR_INDEX, rowIndex, columnIndex, element);
     }
-
 
     @Override
     public void set(Index index, E element) {
@@ -130,12 +139,12 @@ public abstract class AbstractMatrix<E> implements Matrix<E> {
 
     @Override
     public int getStartRow(Matrix matrix) {
-        return (int)(bound.getTopLeftY() - matrix.getTopLeftY()) / bound.getResolution();
+        return (int) (bound.getTopLeftY() - matrix.getTopLeftY()) / bound.getResolution();
     }
 
     @Override
     public int getStartColumn(Matrix matrix) {
-        return (int)(-bound.getTopLeftX() + matrix.getTopLeftX()) / bound.getResolution();
+        return (int) (-bound.getTopLeftX() + matrix.getTopLeftX()) / bound.getResolution();
     }
 
     @Override
@@ -152,7 +161,6 @@ public abstract class AbstractMatrix<E> implements Matrix<E> {
     public int getFlatIndex(int floorIndex, int rowIndex, int columnIndex) {
         return floorIndex * bound.getCount() + rowIndex * bound.getColumnCount() + columnIndex;
     }
-
 
     @Override
     public Index getIndex(int flatIndex) {
@@ -202,8 +210,139 @@ public abstract class AbstractMatrix<E> implements Matrix<E> {
         return bound;
     }
 
+    /**
+     * An Cursor maintaining a index and a element.  The element may be
+     * changed using the <tt>setElement</tt> method.  This class
+     * facilitates the process of building custom matrix
+     * implementations. For example, it may be convenient to return
+     * arrays of <tt>SimpleCursor</tt> instances in method
+     * <tt>Matrix.entrySet().toArray</tt>.
+     *
+     * @since 1.6
+     */
+    public static class SimpleCursor<Index, E>
+            implements Cursor<Index, E>, java.io.Serializable {
+        private static final long serialVersionUID = -8499721149061103585L;
+
+        private final Index index;
+        private E element;
+
+        /**
+         * Creates an cursor representing a mapping from the specified
+         * index to the specified element.
+         *
+         * @param index   the index represented by this cursor
+         * @param element the element represented by this cursor
+         */
+        public SimpleCursor(Index index, E element) {
+            this.index = index;
+            this.element = element;
+        }
+
+        /**
+         * Creates an cursor representing the same mapping as the
+         * specified cursor.
+         *
+         * @param cursor the cursor to copy
+         */
+        public SimpleCursor(Cursor<? extends Index, ? extends E> cursor) {
+            this.index = cursor.getIndex();
+            this.element = cursor.getElement();
+        }
+
+        /**
+         * Returns the index corresponding to this cursor.
+         *
+         * @return the index corresponding to this cursor
+         */
+        public Index getIndex() {
+            return index;
+        }
+
+        /**
+         * Returns the element corresponding to this cursor.
+         *
+         * @return the element corresponding to this cursor
+         */
+        public E getElement() {
+            return element;
+        }
+
+        /**
+         * Replaces the element corresponding to this cursor with the specified
+         * element.
+         *
+         * @param element new element to be stored in this cursor
+         * @return the old element corresponding to the cursor
+         */
+        public E setElement(E element) {
+            E oldValue = this.element;
+            this.element = element;
+            return oldValue;
+        }
+
+        /**
+         * Compares the specified object with this cursor for equality.
+         * Returns {@code true} if the given object is also a matrix cursor and
+         * the two entries represent the same mapping.  More formally, two
+         * entries {@code e1} and {@code e2} represent the same mapping
+         * if<pre>
+         *   (e1.getIndex()==null ?
+         *    e2.getIndex()==null :
+         *    e1.getIndex().equals(e2.getIndex()))
+         *   &amp;&amp;
+         *   (e1.getElement()==null ?
+         *    e2.getElement()==null :
+         *    e1.getElement().equals(e2.getElement()))</pre>
+         * This ensures that the {@code equals} method works properly across
+         * different implementations of the {@code Matrix.Cursor} interface.
+         *
+         * @param o object to be compared for equality with this matrix cursor
+         * @return {@code true} if the specified object is equal to this matrix
+         * cursor
+         * @see #hashCode
+         */
+        public boolean equals(Object o) {
+            if (!(o instanceof Matrix.Cursor))
+                return false;
+            Matrix.Cursor<?, ?> e = (Matrix.Cursor<?, ?>) o;
+            return eq(index, e.getIndex()) && eq(element, e.getElement());
+        }
+
+        /**
+         * Returns the hash code element for this matrix cursor.  The hash code
+         * of a matrix cursor {@code e} is defined to be: <pre>
+         *   (e.getIndex()==null   ? 0 : e.getIndex().hashCode()) ^
+         *   (e.getElement()==null ? 0 : e.getElement().hashCode())</pre>
+         * This ensures that {@code e1.equals(e2)} implies that
+         * {@code e1.hashCode()==e2.hashCode()} for any two Entries
+         * {@code e1} and {@code e2}, as required by the general
+         * contract of {@link Object#hashCode}.
+         *
+         * @return the hash code element for this matrix cursor
+         * @see #equals
+         */
+        public int hashCode() {
+            return (index == null ? 0 : index.hashCode()) ^
+                    (element == null ? 0 : element.hashCode());
+        }
+
+        /**
+         * Returns a String representation of this matrix cursor.  This
+         * implementation returns the string representation of this
+         * cursor's index followed by the equals character ("<tt>=</tt>")
+         * followed by the string representation of this cursor's element.
+         *
+         * @return a String representation of this matrix cursor
+         */
+        public String toString() {
+            return index + "=" + element;
+        }
+    }
+
     class KeyIterator implements Iterator<Integer> {
         private Iterator<Index> indexItr = new IndexItr();
+
         @Override
         public boolean hasNext() {
             return indexItr.hasNext();
@@ -220,31 +359,14 @@ public abstract class AbstractMatrix<E> implements Matrix<E> {
         }
     }
 
-    class MatrixIterator implements Iterator<E> {
-        private Iterator<Index> indexItr = new IndexItr();
-        @Override
-        public boolean hasNext() {
-            return indexItr.hasNext();
-        }
-
-        @Override
-        public E next() {
-            return get(indexItr.next());
-        }
-
-        @Override
-        public void remove() {
-            indexItr.remove();
-        }
-    }
-
     class IndexItr implements Iterator<Index> {
         int floorCursor = 0;
-        private int rowCursor = 0;
-        private int columnCursor = 0;
         int lastFloorRet = -1;
         int lastRowRet = -1;
         int lastColumnRet = -1;
+        private int rowCursor = 0;
+        private int columnCursor = 0;
+
         @Override
         public boolean hasNext() {
             for (; floorCursor < floorCount; floorCursor++) {
@@ -300,6 +422,26 @@ public abstract class AbstractMatrix<E> implements Matrix<E> {
             lastFloorRet = -1;
             lastRowRet = -1;
             lastColumnRet = -1;
+        }
+    }
+
+    class MatrixIterator implements Iterator<Matrix.Cursor<Index, E>> {
+        private Iterator<Index> indexItr = new IndexItr();
+
+        @Override
+        public boolean hasNext() {
+            return indexItr.hasNext();
+        }
+
+        @Override
+        public Cursor<Index, E> next() {
+            Index index = indexItr.next();
+            return new SimpleCursor<>(index, get(index));
+        }
+
+        @Override
+        public void remove() {
+            indexItr.remove();
         }
     }
 }

@@ -181,11 +181,37 @@ public class MatrixTest {
     }
 
     @Test
+    public void forEach() {
+        int num = 0;
+        for (Matrix.Cursor<Index, String> cursor : sparseMatrix) {
+            String s = cursor.getElement();
+            assertNotNull(s);
+            num++;
+        }
+        assertEquals(sparseMatrix.getEffectiveCount(), num);
+        num = 0;
+        for (Matrix.Cursor<Index, String> cursor : arrayMatrix) {
+            String s = cursor.getElement();
+            assertNotNull(s);
+            num++;
+        }
+        assertEquals(arrayMatrix.getEffectiveCount(), num);
+
+        num = 0;
+        for (Matrix.Cursor<Index, Boolean> cursor : bitMatrix) {
+            Boolean bool = cursor.getElement();
+            assertNotNull(bool);
+            num++;
+        }
+        assertEquals(bitMatrix.getEffectiveCount(), num);
+    }
+
+    @Test
     public void iterator() throws Exception {
         int num = 0;
-        Iterator<String> iterator = sparseMatrix.iterator();
+        Iterator<Matrix.Cursor<Index, String>> iterator = sparseMatrix.iterator();
         while (iterator.hasNext()) {
-            String s = iterator.next();
+            String s = iterator.next().getElement();
             assertNotNull(s);
             num++;
         }
@@ -194,16 +220,16 @@ public class MatrixTest {
         num = 0;
         iterator = arrayMatrix.iterator();
         while (iterator.hasNext()) {
-            String s = iterator.next();
+            String s = iterator.next().getElement();
             assertNotNull(s);
             num++;
         }
         assertEquals(arrayMatrix.getEffectiveCount(), num);
 
         num = 0;
-        Iterator<Boolean> bitMatrixIterator = bitMatrix.iterator();
+        Iterator<Matrix.Cursor<Index, Boolean>> bitMatrixIterator = bitMatrix.iterator();
         while (bitMatrixIterator.hasNext()) {
-            Boolean s = bitMatrixIterator.next();
+            Boolean s = bitMatrixIterator.next().getElement();
             assertNotNull(s);
             num++;
         }
