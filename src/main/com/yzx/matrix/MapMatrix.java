@@ -1,43 +1,64 @@
 package com.yzx.matrix;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
 public class MapMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
-    private HashMap<Integer, E> elementData;
+    ArrayList<HashMap<Integer, E>> elementData;
 
     public MapMatrix(Bound bound) {
         super(bound);
-        elementData = new HashMap<>();
+        elementData = new ArrayList<>();
+        for (int i = 0; i < getFloorCount(); i++) {
+            elementData.add(new HashMap<>());
+        }
+    }
+
+    public MapMatrix(Bound bound, int floorCount) {
+        super(bound, floorCount);
+        elementData = new ArrayList<>();
+        for (int i = 0; i < getFloorCount(); i++) {
+            elementData.add(new HashMap<>());
+        }
     }
 
     @Override
     public int getEffectiveCount() {
-        return elementData.size();
+        int effectiveCount = 0;
+        for (HashMap<Integer, E> elementDatum : elementData) {
+            effectiveCount += elementDatum.size();
+        }
+        return effectiveCount;
     }
 
     @Override
-    public E get(int rowIndex, int columnIndex) {
-        rangeCheck(rowIndex, columnIndex);
-        return elementData.get(getFlatIndex(rowIndex, columnIndex));
+    public E get(int floorIndex, int rowIndex, int columnIndex) {
+        rangeCheck(floorIndex, rowIndex, columnIndex);
+        return elementData.get(floorIndex).get(getFlatIndex(DEFAULT_FLOOR_INDEX, rowIndex, columnIndex));
     }
 
     @Override
-    public E get(int flatIndex) {
-        return elementData.get(flatIndex);
-    }
-
-    @Override
-    public void set(int rowIndex, int columnIndex, E element) {
-        rangeCheck(rowIndex, columnIndex);
-        elementData.put(getFlatIndex(rowIndex, columnIndex), element);
+    public void set(int floorIndex, int rowIndex, int columnIndex, E element) {
+        rangeCheck(floorIndex, rowIndex, columnIndex);
+        HashMap<Integer, E> floorData = elementData.get(floorIndex);
+        int floorFlatIndex = getFlatIndex(DEFAULT_FLOOR_INDEX, rowIndex, columnIndex);
+        if (element == null) {
+            floorData.remove(floorFlatIndex);
+        } else {
+            floorData.put(floorFlatIndex, element);
+        }
     }
 
     @Override
     public void clear() {
+        for (HashMap<Integer, E> elementDatum : elementData) {
+            elementDatum.clear();
+        }
         bound = new Bound(0, 0, 0, 0, 0);
         elementData.clear();
+        floorCount = 0;
     }
 
     @Override
@@ -46,66 +67,105 @@ public class MapMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
     }
 
     public Object clone() {
-        MapMatrix<E> mapMatrix = new MapMatrix<>(bound);
-        for (Map.Entry<Integer, E> integerEEntry : elementData.entrySet()) {
-            mapMatrix.set(integerEEntry.getKey(), integerEEntry.getValue());
+        try {
+            MapMatrix<E> mapMatrix = (MapMatrix<E>) super.clone();
+            mapMatrix.elementData = (ArrayList<HashMap<Integer, E>>) elementData.clone();
+            for (int i = 0; i < mapMatrix.elementData.size(); i++) {
+                mapMatrix.elementData.set(i, elementData.get(i));
+            }
+            return mapMatrix;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
         }
-        return mapMatrix;
     }
 
     @Override
     public Iterator<E> iterator() {
-        return elementData.values().iterator();
+        return new mapIterator();
+    }
+
+    @Override
+    public Iterator<Index> indexIterator() {
+        return new MapIndexItr();
     }
 
     @Override
     public Iterator<Integer> keyIterator() {
-        return elementData.keySet().iterator();
+        return new mapKeyIterator();
     }
 
     @Override
-    public void crop() {
-        int minRow = Integer.MAX_VALUE;
-        int minColumn = Integer.MAX_VALUE;
-        int maxRow = 0;
-        int maxColumn = 0;
-        if (elementData.isEmpty()) {
-            bound = new Bound(0, 0, 0, 0, 0);
-        } else {
-            for (Integer globalIndex : elementData.keySet()) {
-                int rowIndex = globalIndex / bound.getColumnCount();
-                int columnIndex = globalIndex % bound.getColumnCount();
-                if (rowIndex < minRow) {
-                    minRow = rowIndex;
-                }
-                if (rowIndex > maxRow) {
-                    maxRow = rowIndex;
-                }
-                if (columnIndex < minColumn) {
-                    minColumn = columnIndex;
-                }
-                if (columnIndex > maxColumn) {
-                    maxColumn = columnIndex;
+    public Matrix<E> getFloorMatrix(int floorIndex) {
+        return null;
+    }
+
+
+    protected class MapIndexItr implements Iterator<Index> {
+        int floorCursor = 0;
+        Iterator<Map.Entry<Integer, E>> keyIterator = elementData.get(floorCursor).entrySet().iterator();
+
+        @Override
+        public boolean hasNext() {
+            while (!keyIterator.hasNext()) {
+                if (floorCursor < floorCount - 1) {
+                    floorCursor++;
+                    keyIterator = elementData.get(floorCursor).entrySet().iterator();
+                } else {
+                    return false;
                 }
             }
+            return true;
         }
-        int newColumnCount = maxColumn - minColumn + 1;
-        HashMap<Integer, E> newElementData = new HashMap<>();
-        for (Integer globalIndex : elementData.keySet()) {
-            int rowIndex = globalIndex / bound.getColumnCount();
-            int columnIndex = globalIndex % bound.getColumnCount();
-            int newRowIndex = rowIndex - minRow;
-            int newColumnIndex = columnIndex - minColumn;
-            newElementData.put(newRowIndex * newColumnCount + newColumnIndex, elementData.get(globalIndex));
+
+        @Override
+        public Index next() {
+            int floorFlatIndex= keyIterator.next().getKey();
+            int rowIndex = floorFlatIndex / bound.getColumnCount();
+            int columnIndex = floorFlatIndex % bound.getColumnCount();
+            return new Index(floorCursor, rowIndex, columnIndex);
         }
-        double newTopLeftX = bound.getTopLeftY() + minColumn * bound.getResolution();
-        double newTopLeftY = bound.getTopLeftY() - minRow * bound.getResolution();
-        int newRowCount = maxRow - minRow + 1;
 
-        bound = new Bound(newTopLeftX, newTopLeftY, newRowCount, newColumnCount, bound.getResolution());
+        @Override
+        public void remove() {
+            keyIterator.remove();
+        }
+    }
 
-        elementData.clear();
-        elementData = null;
-        elementData = newElementData;
+    private class mapKeyIterator implements Iterator<Integer> {
+        private Iterator<Index> mapIndexItr = new MapIndexItr();
+
+        @Override
+        public boolean hasNext() {
+            return mapIndexItr.hasNext();
+        }
+
+        @Override
+        public Integer next() {
+            return getFlatIndex(mapIndexItr.next());
+        }
+
+        @Override
+        public void remove() {
+            mapIndexItr.remove();
+        }
+    }
+
+    private class mapIterator implements Iterator<E> {
+        private Iterator<Index> mapIndexItr = new MapIndexItr();
+
+        @Override
+        public boolean hasNext() {
+            return mapIndexItr.hasNext();
+        }
+
+        @Override
+        public E next() {
+            return get(mapIndexItr.next());
+        }
+
+        @Override
+        public void remove() {
+            mapIndexItr.remove();
+        }
     }
 }

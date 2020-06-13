@@ -3,15 +3,20 @@ package com.yzx.matrix;
 import java.util.Iterator;
 
 public class ArrayMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
-    private Object[][] elementData;
+    private Object[][][] elementData;
     private int effectiveCount;
 
     public ArrayMatrix(Bound bound) {
         super(bound);
-        this.elementData = new Object[bound.getRowCount()][bound.getColumnCount()];
+        this.elementData = new Object[floorCount][bound.getRowCount()][bound.getColumnCount()];
         this.effectiveCount = 0;
     }
 
+    public ArrayMatrix(Bound bound, int floorCount) {
+        super(bound);
+        this.elementData = new Object[floorCount][bound.getRowCount()][bound.getColumnCount()];
+        this.effectiveCount = 0;
+    }
 
     @Override
     public int getEffectiveCount() {
@@ -19,37 +24,31 @@ public class ArrayMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
     }
 
     @Override
-    public E get(int rowIndex, int columnIndex) {
-        rangeCheck(rowIndex, columnIndex);
-        return elementData(rowIndex, columnIndex);
+    public E get(int floorIndex, int rowIndex, int columnIndex) {
+        rangeCheck(floorIndex, rowIndex, columnIndex);
+        return elementData(floorIndex, rowIndex, columnIndex);
     }
 
-    private E elementData(int rowIndex, int columnIndex) {
-        return (E) elementData[rowIndex][columnIndex];
-    }
-
-
-    @Override
-    public E get(int flatIndex) {
-        int rowIndex = flatIndex / bound.getColumnCount();
-        int columnIndex = flatIndex % bound.getColumnCount();
-        return get(rowIndex, columnIndex);
+    private E elementData(int floorIndex, int rowIndex, int columnIndex) {
+        return (E) elementData[floorIndex][rowIndex][columnIndex];
     }
 
     @Override
-    public void set(int rowIndex, int columnIndex, E element) {
-        rangeCheck(rowIndex, columnIndex);
-        if (null == elementData[rowIndex][columnIndex]) {
+    public void set(int floorIndex, int rowIndex, int columnIndex, E element) {
+        rangeCheck(floorIndex, rowIndex, columnIndex);
+        if (null == elementData[floorIndex][rowIndex][columnIndex]) {
             effectiveCount++;
         }
-        elementData[rowIndex][columnIndex] = element;
+        elementData[floorIndex][rowIndex][columnIndex] = element;
     }
 
     @Override
     public void clear() {
-        for (int i = 0; i < bound.getRowCount(); i++) {
-            for (int j = 0; j < bound.getColumnCount(); j++) {
-                elementData[i][j] = null;
+        for (int f = 0; f < floorCount; f++) {
+            for (int i = 0; i < bound.getRowCount(); i++) {
+                for (int j = 0; j < bound.getColumnCount(); j++) {
+                    elementData[f][i][j] = null;
+                }
             }
         }
         bound = new Bound(0, 0, 0, 0, 0);
@@ -58,85 +57,27 @@ public class ArrayMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
 
     @Override
     public boolean isEmpty() {
-        for (Object[] elementDatum : elementData) {
-            for (Object o : elementDatum) {
-                if (null != o) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    @Override
-    public Object clone() {
-        ArrayMatrix arrayMatrix = new ArrayMatrix(bound);
-        for (int i = 0; i < bound.getRowCount(); i++) {
-            for (int j = 0; j < bound.getColumnCount(); j++) {
-                if (null != elementData[i][j]) {
-                    arrayMatrix.set(i, j, elementData[i][j]);
-                }
-            }
-        }
-        return arrayMatrix;
+        return effectiveCount == 0;
     }
 
     @Override
     public Iterator<E> iterator() {
-        return new arrayIterator();
+        return new MatrixIterator();
     }
 
     @Override
     public Iterator<Integer> keyIterator() {
-        return new arrayKeyIterator();
+        return new KeyIterator();
     }
 
     @Override
-    public void crop() {
-        int minRow = Integer.MAX_VALUE;
-        int minColumn = Integer.MAX_VALUE;
-        int maxRow = 0;
-        int maxColumn = 0;
-        if (0 == effectiveCount) {
-            bound = new Bound(0, 0, 0, 0, 0);
-        } else {
-            for (int rowIndex = 0; rowIndex < bound.getRowCount(); rowIndex++) {
-                for (int columnIndex = 0; columnIndex < bound.getColumnCount(); columnIndex++) {
-                    if (null == elementData[rowIndex][columnIndex]) {
-                        continue;
-                    }
-                    if (rowIndex < minRow) {
-                        minRow = rowIndex;
-                    }
-                    if (rowIndex > maxRow) {
-                        maxRow = rowIndex;
-                    }
-                    if (columnIndex < minColumn) {
-                        minColumn = columnIndex;
-                    }
-                    if (columnIndex > maxColumn) {
-                        maxColumn = columnIndex;
-                    }
-                }
-            }
-        }
-        int newRowCount = maxRow - minRow + 1;
-        int newColumnCount = maxColumn - minColumn + 1;
-        Object[][] newElementData = new Object[newRowCount][newColumnCount];
-        for (int rowIndex = 0; rowIndex < bound.getRowCount(); rowIndex++) {
-            for (int columnIndex = 0; columnIndex < bound.getColumnCount(); columnIndex++) {
-                if (null == elementData[rowIndex][columnIndex]) {
-                    continue;
-                }
-                int newRowIndex = rowIndex - minRow;
-                int newColumnIndex = columnIndex - minColumn;
-                newElementData[newRowIndex][newColumnIndex] = elementData[rowIndex][columnIndex];
-            }
-        }
-        double newTopLeftX = bound.getTopLeftY() + minColumn * bound.getResolution();
-        double newTopLeftY = bound.getTopLeftY() - minRow * bound.getResolution();
-        bound = new Bound(newTopLeftX, newTopLeftY, newRowCount, newColumnCount, bound.getResolution());
-        elementData = newElementData;
+    public Iterator<Index> indexIterator() {
+        return new IndexItr();
+    }
+
+    @Override
+    public Matrix<E> getFloorMatrix(int floorIndex) {
+        return null;
     }
 
 }

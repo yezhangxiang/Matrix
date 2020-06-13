@@ -1,5 +1,6 @@
 package com.yzx.matrix;
 
+import com.yzx.geometry.Point;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -254,24 +255,5 @@ public class MatrixTest {
         assertEquals(0, mapMatrix.getStartColumn(arrayMatrix));
         assertEquals(0, arrayMatrix.getStartColumn(mapMatrix));
         assertEquals(3, bitMatrix.getStartColumn(mapMatrix));
-    }
-
-    @Test
-    public void crop() throws Exception {
-        int effectiveCount = mapMatrix.getEffectiveCount();
-        int rowCount = mapMatrix.getRowCount();
-        int columnCount = mapMatrix.getColumnCount();
-        mapMatrix.crop();
-        assertEquals(effectiveCount, mapMatrix.getEffectiveCount());
-        assert rowCount >= mapMatrix.getRowCount();
-        assert columnCount >= mapMatrix.getColumnCount();
-
-        effectiveCount = arrayMatrix.getEffectiveCount();
-        rowCount = arrayMatrix.getRowCount();
-        columnCount = arrayMatrix.getColumnCount();
-        arrayMatrix.crop();
-        assertEquals(effectiveCount, arrayMatrix.getEffectiveCount());
-        assert rowCount >= arrayMatrix.getRowCount();
-        assert columnCount >= arrayMatrix.getColumnCount();
     }
 }

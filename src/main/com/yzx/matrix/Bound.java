@@ -1,5 +1,7 @@
 package com.yzx.matrix;
 
+import com.yzx.geometry.Point;
+
 public class Bound {
     private final double topLeftX;
     private final double topLeftY;

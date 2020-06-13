@@ -1,5 +1,7 @@
 package com.yzx.matrix;
 
+import com.yzx.geometry.Point;
+import com.yzx.geometry.Polygon;
 import org.junit.Test;
 
 import java.util.ArrayList;

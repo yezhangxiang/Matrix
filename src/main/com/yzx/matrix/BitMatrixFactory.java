@@ -1,5 +1,8 @@
 package com.yzx.matrix;
 
+import com.yzx.geometry.Point;
+import com.yzx.geometry.Polygon;
+
 import java.util.*;
 
 public class BitMatrixFactory {

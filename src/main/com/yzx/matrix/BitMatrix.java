@@ -5,33 +5,83 @@ import java.util.Iterator;
 
 public class BitMatrix extends AbstractMatrix<Boolean> {
     private BitSet bitSet;
+    private int trueElementCount;
 
     public BitMatrix(Bound bound) {
         super(bound);
-        bitSet = new BitSet(bound.getRowCount()*bound.getColumnCount());
+        bitSet = new BitSet(getCount());
+        this.trueElementCount = 0;
+    }
+
+    public BitMatrix(Bound bound, int floorCount) {
+        super(bound, floorCount);
+        bitSet = new BitSet(getCount());
+        this.trueElementCount = 0;
+    }
+
+    public BitMatrix(Bound bound, boolean defaultValue) {
+        super(bound);
+        bitSet = new BitSet(getCount());
+        this.trueElementCount = 0;
+        if (defaultValue) {
+            bitSet.set(0, getCount());
+            this.trueElementCount = getCount();
+        }
+    }
+
+    public BitMatrix(Bound bound, int floorCount, boolean defaultValue) {
+        super(bound, floorCount);
+        bitSet = new BitSet(getCount());
+        this.trueElementCount = 0;
+        if (defaultValue) {
+            bitSet.set(0, getCount());
+            this.trueElementCount = getCount();
+        }
     }
 
     @Override
     public int getEffectiveCount() {
-        return bound.getRowCount() * bound.getColumnCount();
+        return getFloorCount() * bound.getCount();
     }
 
     @Override
-    public Boolean get(int rowIndex, int columnIndex) {
-        rangeCheck(rowIndex, columnIndex);
-        int flatIndex = rowIndex * bound.getColumnCount() + columnIndex;
-        return get(flatIndex);
+    public Boolean get(int floorIndex, int rowIndex, int columnIndex) {
+        return get(getFlatIndex(floorIndex, rowIndex, columnIndex));
     }
 
     @Override
     public Boolean get(int flatIndex) {
+        if (flatIndex < 0 || flatIndex >= getCount()) {
+            return null;
+        }
         return bitSet.get(flatIndex);
+    }
+
+    @Override
+    public void set(int flatIndex, Boolean element) {
+        rangeCheck(flatIndex);
+        updateTrueElementsCount(bitSet.get(flatIndex), element);
+        bitSet.get(flatIndex);
+    }
+
+    private void updateTrueElementsCount(boolean oldValue, boolean newValue) {
+        if (!oldValue && newValue) {
+            trueElementCount++;
+        }
+        if (oldValue && !newValue) {
+            trueElementCount--;
+        }
     }
 
     @Override
     public void set(int rowIndex, int columnIndex, Boolean element) {
         int flatIndex = rowIndex * bound.getColumnCount() + columnIndex;
         bitSet.set(flatIndex, element);
+    }
+
+    @Override
+    public void set(int floorIndex, int rowIndex, int columnIndex, Boolean element) {
+        set(getFlatIndex(floorIndex, rowIndex, columnIndex), element);
     }
 
     @Override
@@ -47,17 +97,22 @@ public class BitMatrix extends AbstractMatrix<Boolean> {
 
     @Override
     public Iterator<Boolean> iterator() {
-        return new arrayIterator();
+        return new MatrixIterator();
+    }
+
+    @Override
+    public Iterator<Index> indexIterator() {
+        return new IndexItr();
     }
 
     @Override
     public Iterator<Integer> keyIterator() {
-        return new arrayKeyIterator();
+        return new KeyIterator();
     }
 
     @Override
-    public void crop() {
-
+    public Matrix<Boolean> getFloorMatrix(int floorIndex) {
+        return null;
     }
 
     public int getTrueElementsCount() {
