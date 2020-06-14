@@ -4,11 +4,12 @@ import com.yzx.geometry.Point;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static java.util.stream.Collectors.toList;
+import static org.junit.Assert.*;
 
 public class MatrixTest {
     private SparseMatrix<String> sparseMatrix;
@@ -281,5 +282,31 @@ public class MatrixTest {
         assertEquals(0, sparseMatrix.getStartColumn(arrayMatrix));
         assertEquals(0, arrayMatrix.getStartColumn(sparseMatrix));
         assertEquals(3, bitMatrix.getStartColumn(sparseMatrix));
+    }
+
+    @Test
+    public void stream() {
+        SparseMatrix<String> sparseMatrix;
+        Bound bound = new Bound(0.0, 0.0, 1000, 1000, 1);
+        sparseMatrix = new SparseMatrix<>(bound);
+        for (int i = 0; i < sparseMatrix.getRowCount(); i++) {
+            for (int j = 0; j < sparseMatrix.getColumnCount(); j++) {
+                sparseMatrix.set(i, j,"r"+i+"_c"+j);
+            }
+        }
+
+        long startTime = System.currentTimeMillis();
+        List<String> sortedList = sparseMatrix.stream().map(Matrix.Cursor::getElement).sorted(Comparator.naturalOrder()).collect(toList());
+        long endTime = System.currentTimeMillis();
+        System.out.println("stream takes " +  (endTime - startTime));
+        assertEquals(sparseMatrix.getCount(), sortedList.size());
+
+        startTime = System.currentTimeMillis();
+        List<String> parallelSortedList = sparseMatrix.parallelStream().map(Matrix.Cursor::getElement).sorted(Comparator.naturalOrder()).collect(toList());
+        endTime = System.currentTimeMillis();
+        System.out.println("parallel stream takes " +  (endTime - startTime));
+        assertEquals(sparseMatrix.getCount(), parallelSortedList.size());
+
+        assertEquals(sortedList, parallelSortedList);
     }
 }

@@ -3,9 +3,9 @@ package com.yzx.matrix;
 import com.yzx.geometry.Point;
 
 import java.io.Serializable;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public interface Matrix<E> extends Iterable<Matrix.Cursor<Index, E>> {
 
@@ -85,10 +85,60 @@ public interface Matrix<E> extends Iterable<Matrix.Cursor<Index, E>> {
     Matrix<E> getFloorMatrix(int floorIndex);
 
     /**
+     * Creates a {@link Spliterator} over the elements in this matrix.
+     *
+     * @return a {@code Spliterator} over the elements in this matrix
+     * @since 1.1
+     */
+    default Spliterator<Cursor<Index, E>> spliterator() {
+        return Spliterators.spliterator(this.iterator(), (long)getEffectiveCount(), 0);
+    }
+
+    /**
+     * Returns a sequential {@code Stream} with this matrix as its source.
+     *
+     * <p>This method should be overridden when the {@link #spliterator()}
+     * method cannot return a spliterator that is {@code IMMUTABLE},
+     * {@code CONCURRENT}, or <em>late-binding</em>. (See {@link #spliterator()}
+     * for details.)
+     *
+     * @implSpec
+     * The default implementation creates a sequential {@code Stream} from the
+     * matrix's {@code Spliterator}.
+     *
+     * @return a sequential {@code Stream} over the elements in this matrix
+     * @since 1.1
+     */
+    default Stream<Cursor<Index, E>> stream() {
+        return StreamSupport.stream(spliterator(), false);
+    }
+
+    /**
+     * Returns a possibly parallel {@code Stream} with this matrix as its
+     * source.  It is allowable for this method to return a sequential stream.
+     *
+     * <p>This method should be overridden when the {@link #spliterator()}
+     * method cannot return a spliterator that is {@code IMMUTABLE},
+     * {@code CONCURRENT}, or <em>late-binding</em>. (See {@link #spliterator()}
+     * for details.)
+     *
+     * @implSpec
+     * The default implementation creates a parallel {@code Stream} from the
+     * matrix's {@code Spliterator}.
+     *
+     * @return a possibly parallel {@code Stream} over the elements in this
+     * matrix
+     * @since 1.1
+     */
+    default Stream<Cursor<Index, E>> parallelStream() {
+        return StreamSupport.stream(spliterator(), true);
+    }
+
+    /**
      * A map entry (index-value pair).  The <tt>Matrix.entrySet</tt> method returns
-     * a collection-view of the map, whose elements are of this class.  The
+     * a matrix-view of the map, whose elements are of this class.  The
      * <i>only</i> way to obtain a reference to a map entry is from the
-     * iterator of this collection-view.  These <tt>Matrix.Cursor</tt> objects are
+     * iterator of this matrix-view.  These <tt>Matrix.Cursor</tt> objects are
      * valid <i>only</i> for the duration of the iteration; more formally,
      * the behavior of a map entry is undefined if the backing map has been
      * modified after the entry was returned by the iterator, except through
@@ -107,7 +157,7 @@ public interface Matrix<E> extends Iterable<Matrix.Cursor<Index, E>> {
          * @param <E>     the type of the map values
          * @return a comparator that compares {@link Matrix.Cursor} in natural order on index.
          * @see Comparable
-         * @since 1.8
+         * @since 1.1
          */
         public static <Index extends Comparable<? super Index>, E> Comparator<Cursor<Index, E>> comparingByIndex() {
             return (Comparator<Matrix.Cursor<Index, E>> & Serializable)
@@ -124,7 +174,7 @@ public interface Matrix<E> extends Iterable<Matrix.Cursor<Index, E>> {
          * @param <E>     the {@link Comparable} type of the map values
          * @return a comparator that compares {@link Matrix.Cursor} in natural order on value.
          * @see Comparable
-         * @since 1.8
+         * @since 1.1
          */
         public static <Index, E extends Comparable<? super E>> Comparator<Matrix.Cursor<Index, E>> comparingByElement() {
             return (Comparator<Matrix.Cursor<Index, E>> & Serializable)
@@ -142,7 +192,7 @@ public interface Matrix<E> extends Iterable<Matrix.Cursor<Index, E>> {
          * @param <E>     the type of the map values
          * @param cmp     the index {@link Comparator}
          * @return a comparator that compares {@link Matrix.Cursor} by the index.
-         * @since 1.8
+         * @since 1.1
          */
         public static <Index, E> Comparator<Matrix.Cursor<Index, E>> comparingByIndex(Comparator<? super Index> cmp) {
             Objects.requireNonNull(cmp);
@@ -161,7 +211,7 @@ public interface Matrix<E> extends Iterable<Matrix.Cursor<Index, E>> {
          * @param <E>     the type of the map values
          * @param cmp     the value {@link Comparator}
          * @return a comparator that compares {@link Matrix.Cursor} by the value.
-         * @since 1.8
+         * @since 1.1
          */
         public static <Index, E> Comparator<Matrix.Cursor<Index, E>> comparingByElement(Comparator<? super E> cmp) {
             Objects.requireNonNull(cmp);
