@@ -4,9 +4,11 @@ import com.yzx.geometry.Point;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.*;
@@ -285,28 +287,74 @@ public class MatrixTest {
     }
 
     @Test
-    public void stream() {
-        SparseMatrix<String> sparseMatrix;
+    public void streamSparseMatrix() {
+        // init
         Bound bound = new Bound(0.0, 0.0, 1000, 1000, 1);
-        sparseMatrix = new SparseMatrix<>(bound);
-        for (int i = 0; i < sparseMatrix.getRowCount(); i++) {
-            for (int j = 0; j < sparseMatrix.getColumnCount(); j++) {
-                sparseMatrix.set(i, j,"r"+i+"_c"+j);
+        System.out.println("test stream for sparse matrix:");
+        Matrix<String> matrix = new SparseMatrix<>(bound);
+        stream(matrix);
+    }
+
+    @Test
+    public void streamArrayMatrix() {
+        // init
+        Bound bound = new Bound(0.0, 0.0, 1000, 1000, 1);
+        System.out.println("test stream for array matrix:");
+        Matrix<String> matrix = new ArrayMatrix<>(bound);
+        stream(matrix);
+    }
+
+    private void stream(Matrix<String> arrayMatrix) {
+        for (int i = 0; i < arrayMatrix.getRowCount(); i++) {
+            for (int j = 0; j < arrayMatrix.getColumnCount(); j++) {
+                arrayMatrix.set(i, j,"r"+i+"_c"+j);
             }
         }
 
+        // test stream sorted
         long startTime = System.currentTimeMillis();
-        List<String> sortedList = sparseMatrix.stream().map(Matrix.Cursor::getElement).sorted(Comparator.naturalOrder()).collect(toList());
+        List<String> sortedList = arrayMatrix.stream().map(Matrix.Cursor::getElement).sorted(Comparator.naturalOrder()).collect(toList());
         long endTime = System.currentTimeMillis();
-        System.out.println("stream takes " +  (endTime - startTime));
-        assertEquals(sparseMatrix.getCount(), sortedList.size());
+        System.out.println("stream sorted takes " +  (endTime - startTime));
+        assertEquals(arrayMatrix.getCount(), sortedList.size());
 
+        // test parallel stream sorted
         startTime = System.currentTimeMillis();
-        List<String> parallelSortedList = sparseMatrix.parallelStream().map(Matrix.Cursor::getElement).sorted(Comparator.naturalOrder()).collect(toList());
+        List<String> parallelSortedList = arrayMatrix.parallelStream().map(Matrix.Cursor::getElement).sorted(Comparator.naturalOrder()).collect(toList());
         endTime = System.currentTimeMillis();
-        System.out.println("parallel stream takes " +  (endTime - startTime));
-        assertEquals(sparseMatrix.getCount(), parallelSortedList.size());
+        System.out.println("parallel sorted stream takes " +  (endTime - startTime));
+        assertEquals(arrayMatrix.getCount(), parallelSortedList.size());
 
         assertEquals(sortedList, parallelSortedList);
+
+        Predicate<String > filterPredicate = t -> t.contains("1") || t.contains("3") || t.contains("5") ||
+                t.contains("7") || t.contains("9");
+        // test stream filter
+        startTime = System.currentTimeMillis();
+        List<String> filterList = arrayMatrix.stream().
+                map(Matrix.Cursor::getElement).filter(filterPredicate).collect(toList());
+        endTime = System.currentTimeMillis();
+        System.out.println("stream filter takes " +  (endTime - startTime));
+
+        // test parallel stream filter
+        startTime = System.currentTimeMillis();
+        List<String> parallelFilterList = arrayMatrix.parallelStream().
+                map(Matrix.Cursor::getElement).filter(filterPredicate).collect(toList());
+        endTime = System.currentTimeMillis();
+        System.out.println("parallel stream filter takes " +  (endTime - startTime));
+
+        // test stream foreach filter
+        startTime = System.currentTimeMillis();
+        List<String> foreachFilterList = new ArrayList<>();
+        for (Matrix.Cursor<Index, String> cursor : arrayMatrix) {
+            if (filterPredicate.test(cursor.getElement())) {
+                foreachFilterList.add(cursor.getElement());
+            }
+        }
+        endTime = System.currentTimeMillis();
+        System.out.println("foreach filter takes " +  (endTime - startTime));
+
+        assertEquals(filterList, parallelFilterList);
+        assertEquals(filterList, foreachFilterList);
     }
 }
