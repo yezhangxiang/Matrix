@@ -354,6 +354,10 @@ public class MatrixTest {
         endTime = System.currentTimeMillis();
         System.out.println("foreach filter takes " +  (endTime - startTime));
 
+        filterList.sort(Comparator.naturalOrder());
+        parallelFilterList.sort(Comparator.naturalOrder());
+        foreachFilterList.sort(Comparator.naturalOrder());
+
         assertEquals(filterList, parallelFilterList);
         assertEquals(filterList, foreachFilterList);
     }

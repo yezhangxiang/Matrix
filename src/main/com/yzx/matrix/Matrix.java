@@ -90,9 +90,7 @@ public interface Matrix<E> extends Iterable<Matrix.Cursor<Index, E>> {
      * @return a {@code Spliterator} over the elements in this matrix
      * @since 1.1
      */
-    default Spliterator<Cursor<Index, E>> spliterator() {
-        return Spliterators.spliterator(this.iterator(), (long)getEffectiveCount(), 0);
-    }
+    Spliterator<Cursor<Index, E>> spliterator();
 
     /**
      * Returns a sequential {@code Stream} with this matrix as its source.

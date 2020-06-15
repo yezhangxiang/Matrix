@@ -3,6 +3,8 @@ package com.yzx.matrix;
 import com.yzx.geometry.Point;
 
 import java.util.Iterator;
+import java.util.Spliterator;
+import java.util.function.Consumer;
 
 public abstract class AbstractMatrix<E> implements Matrix<E> {
     public static final int INVALID_FLAT_INDEX = -1;
@@ -359,6 +361,69 @@ public abstract class AbstractMatrix<E> implements Matrix<E> {
         }
     }
 
+    @Override
+    public Spliterator<Cursor<Index, E>> spliterator() {
+        return new MatrixSpliterator(this, 0, -1);
+    }
+
+    class MatrixSpliterator implements Spliterator<Cursor<Index, E>> {
+        private final Matrix<E> matrix;
+        private int index; // current index, modified on advance/split
+        private int fence; // -1 until used; then one past last index
+
+        MatrixSpliterator(Matrix<E> matrix, int original, int fence) {
+            this.matrix = matrix;
+            this.index = original;
+            this.fence = fence;
+        }
+
+        private int getFence() { // initialize fence to size on first use
+            int hi; // (a specialized variant appears in method forEach)
+            Matrix<E> lst;
+            if ((hi = fence) < 0) {
+                if ((lst = matrix) == null)
+                    hi = fence = 0;
+                else {
+                    hi = fence = lst.getCount();
+                }
+            }
+            return hi;
+        }
+
+        public Spliterator<Cursor<Index, E>> trySplit() {
+            int hi = getFence(), lo = index, mid = (lo + hi) >>> 1;
+            return (lo >= mid) ? null : // divide range in half unless too small
+                    new MatrixSpliterator(matrix, lo, index = mid);
+        }
+
+        @Override
+        public boolean tryAdvance(Consumer<? super Cursor<Index, E>> action) {
+            if (action == null)
+                throw new NullPointerException();
+            int hi = getFence(), i = index;
+            while (i < hi) {
+                index = i + 1;
+                E e = matrix.get(i);
+                if (e != null) {
+                    Index index = getIndex(i);
+                    action.accept(new SimpleCursor<>(index, e));
+                    return true;
+                }
+                i += 1;
+            }
+            return false;
+        }
+
+
+        public long estimateSize() {
+            return (long) (getFence() - index);
+        }
+
+        public int characteristics() {
+            return Spliterator.SIZED | Spliterator.SUBSIZED;
+        }
+    }
+
     class IndexItr implements Iterator<Index> {
         int floorCursor = 0;
         int lastFloorRet = -1;
@@ -394,7 +459,7 @@ public abstract class AbstractMatrix<E> implements Matrix<E> {
                 rowIndex = rowCursor;
                 columnIndex = columnCursor;
 
-                o = get(rowCursor, columnCursor);
+                o = get(floorIndex, rowIndex, columnIndex);
                 if (columnCursor == bound.getColumnCount() - 1) {
                     if (rowCursor == bound.getRowCount() - 1) {
                         floorCursor++;
@@ -407,6 +472,7 @@ public abstract class AbstractMatrix<E> implements Matrix<E> {
                     columnCursor++;
                 }
             } while (null == o);
+
             lastFloorRet = floorIndex;
             lastRowRet = rowIndex;
             lastColumnRet = columnIndex;
