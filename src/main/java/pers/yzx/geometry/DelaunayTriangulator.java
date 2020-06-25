@@ -149,7 +149,7 @@ public class DelaunayTriangulator {
         if (!pointSet.contains(point)) {
             throw new IllegalArgumentException("The point " + point.toString() + " not in delaunay point set.");
         }
-
+        pointSet.remove(point);
         List<Triangle> trianglesToBeRemoved = triangleSoup.findVertexTriangles(point);
         Point unitedPoint = getUnitedPoint(trianglesToBeRemoved, point);
         List<Triangle> newTriangles = getNewTriangles(trianglesToBeRemoved, point, unitedPoint);

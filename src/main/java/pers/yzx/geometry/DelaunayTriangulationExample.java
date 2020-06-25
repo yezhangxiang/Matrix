@@ -169,12 +169,29 @@ public class DelaunayTriangulationExample implements GLEventListener, MouseListe
     @Override
     public void mousePressed(MouseEvent e) {
         java.awt.Point p = e.getPoint();
+        Point mousePoint = new Point(p.x, p.y);
 
-        try {
-            delaunayTriangulator.addPoint(new Point(p.x, p.y));
+        if (e.getButton() == 1) {
+            try {
+                delaunayTriangulator.addPoint(mousePoint);
 //            delaunayTriangulator.triangulate();
-        } catch (IllegalArgumentException e1) {
+            } catch (IllegalArgumentException e1) {
+            }
         }
+        if (e.getButton() == 3) {
+            for (Point point : pointSet) {
+                if (distance(point, mousePoint) < 10) {
+                    delaunayTriangulator.removePoint(point);
+                    return;
+                }
+            }
+        }
+    }
+
+    private double distance(Point point, Point mousePoint) {
+        double deltaX = point.getX() - mousePoint.getX();
+        double deltaY = point.getY() - mousePoint.getY();
+        return Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     }
 
     @Override
