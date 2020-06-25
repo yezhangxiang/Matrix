@@ -120,4 +120,7 @@ public class Vector {
         return "Vector2D[" + x + ", " + y + "]";
     }
 
+    public double angle(Vector vector) {
+        return Math.acos(this.dot(vector)/ (this.mag()*vector.mag()));
+    }
 }

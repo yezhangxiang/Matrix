@@ -3,6 +3,7 @@ package pers.yzx.geometry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Triangle soup class implementation.
@@ -12,6 +13,10 @@ import java.util.List;
 class TriangleSoup {
 
     private final List<Triangle> triangleSoup;
+
+    TriangleSoup(TriangleSoup triangleSoup) {
+        this.triangleSoup = new ArrayList<>(triangleSoup.triangleSoup);
+    }
 
     /**
      * Constructor of the triangle soup class used to create a new triangle soup
@@ -140,4 +145,19 @@ class TriangleSoup {
         triangleSoup.removeAll(trianglesToBeRemoved);
     }
 
+    public List<Triangle> findVertexTriangles(Point point) {
+        return triangleSoup.stream().filter(triangle -> triangle.hasVertex(point)).collect(Collectors.toList());
+    }
+
+    public void removeAll(List<Triangle> trianglesToBeRemoved) {
+        triangleSoup.removeAll(trianglesToBeRemoved);
+    }
+
+    public void addAll(List<Triangle> newTriangles) {
+        triangleSoup.addAll(newTriangles);
+    }
+
+    public boolean contains(Triangle newTriangle) {
+        return triangleSoup.contains(newTriangle);
+    }
 }

@@ -1,14 +1,16 @@
 package pers.yzx.geometry;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of incremental Delaunay triangulation algorithm.only for 2D.
  */
 public class DelaunayTriangulator {
-
     private Set<Point> pointSet;
     private TriangleSoup triangleSoup;
+    private Triangle superTriangle;
 
     /**
      * Constructor of the SimpleDelaunayTriangulator class used to create a new
@@ -28,21 +30,15 @@ public class DelaunayTriangulator {
      * @throws IllegalArgumentException Thrown when the point set contains less than three points
      */
     public void triangulate() throws IllegalArgumentException {
-        triangleSoup = new TriangleSoup();
+        this.triangleSoup = new TriangleSoup();
         if (pointSet == null || pointSet.size() < 3) {
             throw new IllegalArgumentException("Less than three points in point set.");
         }
-        Triangle superTriangle = generateSuperTriangle();
+        superTriangle = generateSuperTriangle();
         triangleSoup.add(superTriangle);
         for (Point point : pointSet) {
             insertOnePoint(point);
         }
-        /**
-         * Remove all triangles that contain vertices of the super triangle.
-         */
-        triangleSoup.removeTrianglesUsing(superTriangle.a);
-        triangleSoup.removeTrianglesUsing(superTriangle.b);
-        triangleSoup.removeTrianglesUsing(superTriangle.c);
     }
 
     private void insertOnePoint(Point point) {
@@ -134,6 +130,103 @@ public class DelaunayTriangulator {
         return new Triangle(p1, p2, p3);
     }
 
+    public void addPoint(Point point) {
+        if (pointSet.contains(point)) {
+            return;
+        }
+        pointSet.add(point);
+        if (pointSet.size() < 3) {
+            throw new IllegalArgumentException("Less than three points in point set.");
+        }
+        if (pointSet.size() == 3) {
+            triangulate();
+            return;
+        }
+        insertOnePoint(point);
+    }
+
+    public void removePoint(Point point) {
+        if (!pointSet.contains(point)) {
+            throw new IllegalArgumentException("The point " + point.toString() + " not in delaunay point set.");
+        }
+
+        List<Triangle> trianglesToBeRemoved = triangleSoup.findVertexTriangles(point);
+        Point unitedPoint = getUnitedPoint(trianglesToBeRemoved, point);
+        List<Triangle> newTriangles = getNewTriangles(trianglesToBeRemoved, point, unitedPoint);
+        triangleSoup.removeAll(trianglesToBeRemoved);
+        triangleSoup.addAll(newTriangles);
+        for (Triangle newTriangle : newTriangles) {
+            if (triangleSoup.contains(newTriangle)) {
+                if (newTriangle.a == unitedPoint) {
+                    legalizeEdge(newTriangle, new Edge(newTriangle.a, newTriangle.b), newTriangle.c);
+                    legalizeEdge(newTriangle, new Edge(newTriangle.a, newTriangle.c), newTriangle.b);
+                }
+                if (newTriangle.b == unitedPoint) {
+                    legalizeEdge(newTriangle, new Edge(newTriangle.a, newTriangle.b), newTriangle.c);
+                    legalizeEdge(newTriangle, new Edge(newTriangle.b, newTriangle.c), newTriangle.a);
+                }
+                if (newTriangle.c == unitedPoint) {
+                    legalizeEdge(newTriangle, new Edge(newTriangle.b, newTriangle.c), newTriangle.a);
+                    legalizeEdge(newTriangle, new Edge(newTriangle.a, newTriangle.c), newTriangle.b);
+                }
+            }
+        }
+    }
+
+    private List<Triangle> getNewTriangles(List<Triangle> trianglesToBeRemoved, Point point, Point unitedPoint) {
+        List<Triangle> newTriangles = new ArrayList<>();
+        for (Triangle triangle : trianglesToBeRemoved) {
+            if (triangle.hasVertex(unitedPoint)) {
+                continue;
+            }
+            Triangle unitedTriangle = getUnitedTriangle(triangle, unitedPoint, point);
+            newTriangles.add(unitedTriangle);
+        }
+        return newTriangles;
+    }
+
+    private Triangle getUnitedTriangle(Triangle triangle, Point unitedPoint, Point point) {
+        if (triangle.a == point) {
+            return new Triangle(unitedPoint, triangle.b, triangle.c);
+        }
+        if (triangle.b == point) {
+            return new Triangle(triangle.a, unitedPoint, triangle.c);
+        }
+        return new Triangle(triangle.a, triangle.b, unitedPoint);
+    }
+
+    private Point getUnitedPoint(List<Triangle> trianglesToBeRemoved, Point point) {
+        Map<Triangle, Double> triangleAngleMap = trianglesToBeRemoved.stream().
+                collect(Collectors.toMap(Function.identity(), triangle -> getVertexAngle(triangle, point)));
+        Map<Point, Double> pointAngleSumMap = new HashMap<>();
+        for (Triangle triangle : trianglesToBeRemoved) {
+            Double vertexAngle = triangleAngleMap.get(triangle);
+            deal(triangle.a, point, vertexAngle, pointAngleSumMap);
+            deal(triangle.b, point, vertexAngle, pointAngleSumMap);
+            deal(triangle.c, point, vertexAngle, pointAngleSumMap);
+        }
+        Point unitedPoint = pointAngleSumMap.entrySet().stream().
+                reduce((o1, o2) -> o1.getValue() < o2.getValue() ? o1 : o2).get().getKey();
+        return unitedPoint;
+    }
+
+    private void deal(Point vertex, Point point, Double vertexAngle, Map<Point, Double> pointAngleSumMap) {
+        if (vertex != point) {
+            double angle = pointAngleSumMap.computeIfAbsent(vertex, k -> 0.0);
+            pointAngleSumMap.put(vertex, angle + vertexAngle);
+        }
+    }
+
+    private double getVertexAngle(Triangle triangle, Point point) {
+        if (triangle.a == point) {
+            return new Vector(point, triangle.b).angle(new Vector(point, triangle.c));
+        }
+        if (triangle.b == point) {
+            return new Vector(point, triangle.a).angle(new Vector(point, triangle.c));
+        }
+        return new Vector(point, triangle.a).angle(new Vector(point, triangle.b));
+    }
+
     /**
      * This method legalizes edges by recursively flipping all illegal edges.
      *
@@ -143,10 +236,7 @@ public class DelaunayTriangulator {
      */
     private void legalizeEdge(Triangle triangle, Edge edge, Point newVertex) {
         Triangle neighbourTriangle = triangleSoup.findNeighbour(triangle, edge);
-
-        /**
-         * If the triangle has a neighbor, then legalize the edge
-         */
+        // If the triangle has a neighbor, then legalize the edge
         if (neighbourTriangle != null) {
             if (neighbourTriangle.isPointInCircumcircle(newVertex)) {
                 triangleSoup.remove(triangle);
@@ -182,6 +272,13 @@ public class DelaunayTriangulator {
      * @return Returns the triangles of the triangulation.
      */
     public List<Triangle> getTriangles() {
-        return triangleSoup.getTriangles();
+        TriangleSoup triangleSoup1 = new TriangleSoup(triangleSoup);
+        // Remove all triangles that contain vertices of the super triangle.
+        if (superTriangle != null) {
+            triangleSoup1.removeTrianglesUsing(superTriangle.a);
+            triangleSoup1.removeTrianglesUsing(superTriangle.b);
+            triangleSoup1.removeTrianglesUsing(superTriangle.c);
+        }
+        return triangleSoup1.getTriangles();
     }
 }
