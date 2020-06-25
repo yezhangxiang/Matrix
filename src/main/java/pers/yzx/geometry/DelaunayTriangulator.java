@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
  * Implementation of incremental Delaunay triangulation algorithm.only for 2D.
  */
 public class DelaunayTriangulator {
-    private Set<Point> pointSet;
+    private final Set<Point> pointSet;
     private TriangleSoup triangleSoup;
     private Triangle superTriangle;
 
@@ -149,10 +149,10 @@ public class DelaunayTriangulator {
         if (!pointSet.contains(point)) {
             throw new IllegalArgumentException("The point " + point.toString() + " not in delaunay point set.");
         }
-        pointSet.remove(point);
         List<Triangle> trianglesToBeRemoved = triangleSoup.findVertexTriangles(point);
         Point unitedPoint = getUnitedPoint(trianglesToBeRemoved, point);
         List<Triangle> newTriangles = getNewTriangles(trianglesToBeRemoved, point, unitedPoint);
+        pointSet.remove(point);
         triangleSoup.removeAll(trianglesToBeRemoved);
         triangleSoup.addAll(newTriangles);
         for (Triangle newTriangle : newTriangles) {
