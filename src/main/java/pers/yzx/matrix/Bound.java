@@ -1,6 +1,6 @@
-package com.yzx.matrix;
+package pers.yzx.matrix;
 
-import com.yzx.geometry.Point;
+import pers.yzx.geometry.Point;
 
 public class Bound {
     private final double topLeftX;

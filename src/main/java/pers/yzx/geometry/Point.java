@@ -1,4 +1,4 @@
-package com.yzx.geometry;
+package pers.yzx.geometry;
 
 public class Point {
     private final double x;
@@ -27,5 +27,9 @@ public class Point {
 
     public double getZ() {
         return z;
+    }
+
+    public Point add(Vector vector) {
+        return new Point(x+vector.x, y+vector.y);
     }
 }

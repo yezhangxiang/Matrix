@@ -1,4 +1,4 @@
-package com.yzx.matrix;
+package pers.yzx.matrix;
 
 import java.util.BitSet;
 import java.util.Iterator;

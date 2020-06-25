@@ -1,4 +1,4 @@
-package com.yzx.utils;
+package pers.yzx.utils;
 
 import java.util.*;
 import java.util.function.Function;

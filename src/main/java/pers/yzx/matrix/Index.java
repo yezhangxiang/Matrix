@@ -1,4 +1,4 @@
-package com.yzx.matrix;
+package pers.yzx.matrix;
 
 public class Index {
     private final int floorIndex;

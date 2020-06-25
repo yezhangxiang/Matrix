@@ -1,7 +1,7 @@
-package com.yzx.matrix;
+package pers.yzx.matrix;
 
-import com.yzx.geometry.Point;
-import com.yzx.geometry.Polygon;
+import pers.yzx.geometry.Point;
+import pers.yzx.geometry.Polygon;
 
 import java.util.*;
 

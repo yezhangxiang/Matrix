@@ -1,6 +1,6 @@
-package com.yzx.geometry;
+package pers.yzx.geometry;
 
-import com.yzx.matrix.Bound;
+import pers.yzx.matrix.Bound;
 
 import java.util.List;
 
