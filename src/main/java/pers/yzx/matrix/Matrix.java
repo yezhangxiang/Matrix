@@ -3,7 +3,10 @@ package pers.yzx.matrix;
 import pers.yzx.geometry.Point;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.Spliterator;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -100,11 +103,9 @@ public interface Matrix<E> extends Iterable<Matrix.Cursor<Index, E>> {
      * {@code CONCURRENT}, or <em>late-binding</em>. (See {@link #spliterator()}
      * for details.)
      *
-     * @implSpec
-     * The default implementation creates a sequential {@code Stream} from the
-     * matrix's {@code Spliterator}.
-     *
      * @return a sequential {@code Stream} over the elements in this matrix
+     * @implSpec The default implementation creates a sequential {@code Stream} from the
+     * matrix's {@code Spliterator}.
      * @since 1.1
      */
     default Stream<Cursor<Index, E>> stream() {
@@ -120,12 +121,10 @@ public interface Matrix<E> extends Iterable<Matrix.Cursor<Index, E>> {
      * {@code CONCURRENT}, or <em>late-binding</em>. (See {@link #spliterator()}
      * for details.)
      *
-     * @implSpec
-     * The default implementation creates a parallel {@code Stream} from the
-     * matrix's {@code Spliterator}.
-     *
      * @return a possibly parallel {@code Stream} over the elements in this
      * matrix
+     * @implSpec The default implementation creates a parallel {@code Stream} from the
+     * matrix's {@code Spliterator}.
      * @since 1.1
      */
     default Stream<Cursor<Index, E>> parallelStream() {

@@ -66,6 +66,7 @@ public class SparseMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
         return elementData.isEmpty();
     }
 
+    @SuppressWarnings("unchecked")
     public Object clone() {
         try {
             SparseMatrix<E> sparseMatrix = (SparseMatrix<E>) super.clone();
@@ -132,7 +133,7 @@ public class SparseMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
     }
 
     private class mapKeyIterator implements Iterator<Integer> {
-        private Iterator<Index> mapIndexItr = new MapIndexItr();
+        private final Iterator<Index> mapIndexItr = new MapIndexItr();
 
         @Override
         public boolean hasNext() {
@@ -151,7 +152,7 @@ public class SparseMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
     }
 
     private class mapIterator implements Iterator<Matrix.Cursor<Index, E>> {
-        private Iterator<Index> mapIndexItr = new MapIndexItr();
+        private final Iterator<Index> mapIndexItr = new MapIndexItr();
 
         @Override
         public boolean hasNext() {

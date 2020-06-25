@@ -1,8 +1,8 @@
 package pers.yzx.matrix;
 
-import pers.yzx.geometry.Point;
 import org.junit.Before;
 import org.junit.Test;
+import pers.yzx.geometry.Point;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -230,9 +230,8 @@ public class MatrixTest {
         assertEquals(arrayMatrix.getEffectiveCount(), num);
 
         num = 0;
-        Iterator<Matrix.Cursor<Index, Boolean>> bitMatrixIterator = bitMatrix.iterator();
-        while (bitMatrixIterator.hasNext()) {
-            Boolean s = bitMatrixIterator.next().getElement();
+        for (Matrix.Cursor<Index, Boolean> matrix : bitMatrix) {
+            Boolean s = matrix.getElement();
             assertNotNull(s);
             num++;
         }
@@ -307,7 +306,7 @@ public class MatrixTest {
     private void stream(Matrix<String> arrayMatrix) {
         for (int i = 0; i < arrayMatrix.getRowCount(); i++) {
             for (int j = 0; j < arrayMatrix.getColumnCount(); j++) {
-                arrayMatrix.set(i, j,"r"+i+"_c"+j);
+                arrayMatrix.set(i, j, "r" + i + "_c" + j);
             }
         }
 
@@ -315,33 +314,33 @@ public class MatrixTest {
         long startTime = System.currentTimeMillis();
         List<String> sortedList = arrayMatrix.stream().map(Matrix.Cursor::getElement).sorted(Comparator.naturalOrder()).collect(toList());
         long endTime = System.currentTimeMillis();
-        System.out.println("stream sorted takes " +  (endTime - startTime));
+        System.out.println("stream sorted takes " + (endTime - startTime));
         assertEquals(arrayMatrix.getCount(), sortedList.size());
 
         // test parallel stream sorted
         startTime = System.currentTimeMillis();
         List<String> parallelSortedList = arrayMatrix.parallelStream().map(Matrix.Cursor::getElement).sorted(Comparator.naturalOrder()).collect(toList());
         endTime = System.currentTimeMillis();
-        System.out.println("parallel sorted stream takes " +  (endTime - startTime));
+        System.out.println("parallel sorted stream takes " + (endTime - startTime));
         assertEquals(arrayMatrix.getCount(), parallelSortedList.size());
 
         assertEquals(sortedList, parallelSortedList);
 
-        Predicate<String > filterPredicate = t -> t.contains("1") || t.contains("3") || t.contains("5") ||
+        Predicate<String> filterPredicate = t -> t.contains("1") || t.contains("3") || t.contains("5") ||
                 t.contains("7") || t.contains("9");
         // test stream filter
         startTime = System.currentTimeMillis();
         List<String> filterList = arrayMatrix.stream().
                 map(Matrix.Cursor::getElement).filter(filterPredicate).collect(toList());
         endTime = System.currentTimeMillis();
-        System.out.println("stream filter takes " +  (endTime - startTime));
+        System.out.println("stream filter takes " + (endTime - startTime));
 
         // test parallel stream filter
         startTime = System.currentTimeMillis();
         List<String> parallelFilterList = arrayMatrix.parallelStream().
                 map(Matrix.Cursor::getElement).filter(filterPredicate).collect(toList());
         endTime = System.currentTimeMillis();
-        System.out.println("parallel stream filter takes " +  (endTime - startTime));
+        System.out.println("parallel stream filter takes " + (endTime - startTime));
 
         // test stream foreach filter
         startTime = System.currentTimeMillis();
@@ -352,7 +351,7 @@ public class MatrixTest {
             }
         }
         endTime = System.currentTimeMillis();
-        System.out.println("foreach filter takes " +  (endTime - startTime));
+        System.out.println("foreach filter takes " + (endTime - startTime));
 
         filterList.sort(Comparator.naturalOrder());
         parallelFilterList.sort(Comparator.naturalOrder());

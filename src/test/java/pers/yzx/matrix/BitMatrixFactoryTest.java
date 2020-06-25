@@ -1,13 +1,13 @@
 package pers.yzx.matrix;
 
+import org.junit.Test;
 import pers.yzx.geometry.Point;
 import pers.yzx.geometry.Polygon;
-import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class BitMatrixFactoryTest {
     @Test

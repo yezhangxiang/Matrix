@@ -4,7 +4,7 @@ import java.util.BitSet;
 import java.util.Iterator;
 
 public class BitMatrix extends AbstractMatrix<Boolean> {
-    private BitSet bitSet;
+    private final BitSet bitSet;
     private int trueElementCount;
 
     public BitMatrix(Bound bound) {

@@ -30,6 +30,6 @@ public class Point {
     }
 
     public Point add(Vector vector) {
-        return new Point(x+vector.x, y+vector.y);
+        return new Point(x + vector.x, y + vector.y);
     }
 }

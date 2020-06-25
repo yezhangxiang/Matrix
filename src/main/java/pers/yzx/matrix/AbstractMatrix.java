@@ -3,14 +3,15 @@ package pers.yzx.matrix;
 import pers.yzx.geometry.Point;
 
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 
 public abstract class AbstractMatrix<E> implements Matrix<E> {
     public static final int INVALID_FLAT_INDEX = -1;
     protected static final int DEFAULT_FLOOR_INDEX = 0;
-    private static double floorInterval = 3;
-    private static int maxFloor = 10;
+    private static final double floorInterval = 3;
+    private static final int maxFloor = 10;
     int floorCount;
     Bound bound;
 
@@ -212,6 +213,11 @@ public abstract class AbstractMatrix<E> implements Matrix<E> {
         return bound;
     }
 
+    @Override
+    public Spliterator<Cursor<Index, E>> spliterator() {
+        return new MatrixSpliterator(this, 0, -1);
+    }
+
     /**
      * An Cursor maintaining a index and a element.  The element may be
      * changed using the <tt>setElement</tt> method.  This class
@@ -343,7 +349,7 @@ public abstract class AbstractMatrix<E> implements Matrix<E> {
     }
 
     class KeyIterator implements Iterator<Integer> {
-        private Iterator<Index> indexItr = new IndexItr();
+        private final Iterator<Index> indexItr = new IndexItr();
 
         @Override
         public boolean hasNext() {
@@ -359,11 +365,6 @@ public abstract class AbstractMatrix<E> implements Matrix<E> {
         public void remove() {
             indexItr.remove();
         }
-    }
-
-    @Override
-    public Spliterator<Cursor<Index, E>> spliterator() {
-        return new MatrixSpliterator(this, 0, -1);
     }
 
     class MatrixSpliterator implements Spliterator<Cursor<Index, E>> {
@@ -492,7 +493,7 @@ public abstract class AbstractMatrix<E> implements Matrix<E> {
     }
 
     class MatrixIterator implements Iterator<Matrix.Cursor<Index, E>> {
-        private Iterator<Index> indexItr = new IndexItr();
+        private final Iterator<Index> indexItr = new IndexItr();
 
         @Override
         public boolean hasNext() {

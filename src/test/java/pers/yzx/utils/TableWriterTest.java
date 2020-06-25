@@ -12,7 +12,7 @@ import java.util.stream.IntStream;
 public class TableWriterTest {
     @Test
     public void write() throws Exception {
-        List<Cell> cells = IntStream.range(0, 10).mapToObj(i -> new Cell(i, "cell_" + String.valueOf(i))).collect(Collectors.toList());
+        List<Cell> cells = IntStream.range(0, 10).mapToObj(i -> new Cell(i, "cell_" + i)).collect(Collectors.toList());
         Map<String, Function<Cell, String>> functionMap = new HashMap<>();
         functionMap.put("name", Cell::getName);
         functionMap.put("id", cell -> String.valueOf(cell.getId()));

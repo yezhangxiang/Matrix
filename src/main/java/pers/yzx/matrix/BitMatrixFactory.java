@@ -3,7 +3,10 @@ package pers.yzx.matrix;
 import pers.yzx.geometry.Point;
 import pers.yzx.geometry.Polygon;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class BitMatrixFactory {
 
@@ -30,13 +33,7 @@ public class BitMatrixFactory {
     }
 
     private static void removeNonActiveEdgeFromAet(List<Edge> activeEdgeTable, double nextLineY) {
-        Iterator<Edge> iterator = activeEdgeTable.iterator();
-        while (iterator.hasNext()) {
-            Edge edge = iterator.next();
-            if (edge.yMin >= nextLineY) {
-                iterator.remove();
-            }
-        }
+        activeEdgeTable.removeIf(edge -> edge.yMin >= nextLineY);
     }
 
     private static void fillAetScanLine(List<Edge> activeEdgeTable, int i, BitMatrix bitMatrix) {

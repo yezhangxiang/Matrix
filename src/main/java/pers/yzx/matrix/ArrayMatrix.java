@@ -3,7 +3,7 @@ package pers.yzx.matrix;
 import java.util.Iterator;
 
 public class ArrayMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
-    private Object[][][] elementData;
+    private final Object[][][] elementData;
     private int effectiveCount;
 
     public ArrayMatrix(Bound bound) {
@@ -29,6 +29,7 @@ public class ArrayMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
         return elementData(floorIndex, rowIndex, columnIndex);
     }
 
+    @SuppressWarnings("unchecked")
     private E elementData(int floorIndex, int rowIndex, int columnIndex) {
         return (E) elementData[floorIndex][rowIndex][columnIndex];
     }
