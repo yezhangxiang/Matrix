@@ -117,7 +117,7 @@ public class Vector {
 
     @Override
     public String toString() {
-        return "Vector2D[" + x + ", " + y + "]";
+        return "Vector[" + x + ", " + y + ", " + z + "]";
     }
 
     public double angle(Vector vector) {

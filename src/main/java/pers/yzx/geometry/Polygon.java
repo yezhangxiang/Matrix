@@ -30,4 +30,34 @@ public class Polygon {
 
         return Bound.adjustBound(left, top, right, bottom, resolution);
     }
+
+    /**
+     * test point is inside a polygon by ray crossing
+     * 被测试点在多边形边上，或者和顶点y一样的情况有可能结果不正确
+     *
+     * @param point 被测试点
+     * @return true if point in polygon
+     */
+    public boolean isInside(Point point) {
+        int crossTime = 0;
+        int pointSize = points.size();
+        for (int i = 0; i < pointSize; i++) {
+            Point point1 = points.get(i);
+            Point point2 = points.get((i + 1) % pointSize);
+            if (point1.getY() == point2.getY()) {
+                continue;
+            }
+            if (point.getY() < Math.min(point1.getY(), point2.getY())) {
+                continue;
+            }
+            if (point.getY() > Math.max(point1.getY(), point2.getY())) {
+                continue;
+            }
+            double x = (point.getY() - point1.getY()) * (point2.getX() - point1.getX()) / (point2.getY() - point1.getY()) + point1.getX();
+            if (x > point.getX()) {
+                ++crossTime;
+            }
+        }
+        return crossTime % 2 == 1;
+    }
 }

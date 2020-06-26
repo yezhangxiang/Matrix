@@ -32,4 +32,9 @@ public class Point {
     public Point add(Vector vector) {
         return new Point(x + vector.x, y + vector.y);
     }
+
+    @Override
+    public String toString() {
+        return "[" + x + ", " + y + "," + z + "]";
+    }
 }
