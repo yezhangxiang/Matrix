@@ -108,9 +108,9 @@ public class DelaunayTriangulationExample implements GLEventListener, MouseListe
 
         for (int i = 0; i < delaunayTriangulator.getTriangles().size(); i++) {
             Triangle triangle = delaunayTriangulator.getTriangles().get(i);
-            Point a = triangle.a;
-            Point b = triangle.b;
-            Point c = triangle.c;
+            Point a = triangle.getA();
+            Point b = triangle.getB();
+            Point c = triangle.getC();
 
             gl.glVertex2d(a.getX(), a.getY());
 
@@ -126,9 +126,9 @@ public class DelaunayTriangulationExample implements GLEventListener, MouseListe
 
         for (int i = 0; i < delaunayTriangulator.getTriangles().size(); i++) {
             Triangle triangle = delaunayTriangulator.getTriangles().get(i);
-            Point a = triangle.a;
-            Point b = triangle.b;
-            Point c = triangle.c;
+            Point a = triangle.getA();
+            Point b = triangle.getB();
+            Point c = triangle.getC();
 
             gl.glVertex2d(a.getX(), a.getY());
             gl.glVertex2d(b.getX(), b.getY());

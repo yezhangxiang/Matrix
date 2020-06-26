@@ -4,8 +4,8 @@ package pers.yzx.geometry;
  * edge
  */
 public class Edge {
-    public Point a;
-    public Point b;
+    private Point a;
+    private Point b;
 
     /**
      * Constructor of the edge
@@ -18,4 +18,11 @@ public class Edge {
         this.b = b;
     }
 
+    public Point getA() {
+        return a;
+    }
+
+    public Point getB() {
+        return b;
+    }
 }

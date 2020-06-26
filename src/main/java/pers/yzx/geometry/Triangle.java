@@ -1,15 +1,16 @@
 package pers.yzx.geometry;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * triangle
  */
 public class Triangle {
-
-    public Point a;
-    public Point b;
-    public Point c;
+    private Point a;
+    private Point b;
+    private Point c;
 
     /**
      * Constructor of the 2D triangle
@@ -22,6 +23,18 @@ public class Triangle {
         this.a = a;
         this.b = b;
         this.c = c;
+    }
+
+    public Point getA() {
+        return a;
+    }
+
+    public Point getB() {
+        return b;
+    }
+
+    public Point getC() {
+        return c;
     }
 
     /**
@@ -110,7 +123,7 @@ public class Triangle {
      * @return Returns true if this triangle contains the edge
      */
     public boolean isNeighbour(Edge edge) {
-        return (a == edge.a || b == edge.a || c == edge.a) && (a == edge.b || b == edge.b || c == edge.b);
+        return (a == edge.getA() || b == edge.getA() || c == edge.getA()) && (a == edge.getB() || b == edge.getB() || c == edge.getB());
     }
 
     /**
@@ -120,11 +133,11 @@ public class Triangle {
      * @return The point of this triangle that is not part of the edge
      */
     public Point getNoneEdgeVertex(Edge edge) {
-        if (a != edge.a && a != edge.b) {
+        if (a != edge.getA() && a != edge.getB()) {
             return a;
-        } else if (b != edge.a && b != edge.b) {
+        } else if (b != edge.getA() && b != edge.getB()) {
             return b;
-        } else if (c != edge.a && c != edge.b) {
+        } else if (c != edge.getA() && c != edge.getB()) {
             return c;
         }
 
@@ -173,8 +186,8 @@ public class Triangle {
      * @return The closest point on the given edge to the specified point
      */
     private Point computeClosestPoint(Edge edge, Point point) {
-        Vector ab = new Vector(edge.b, edge.a);
-        double t = new Vector(point, (edge.a)).dot(ab) / ab.dot(ab);
+        Vector ab = new Vector(edge.getB(), edge.getA());
+        double t = new Vector(point, (edge.getA())).dot(ab) / ab.dot(ab);
 
         if (t < 0.0d) {
             t = 0.0d;
@@ -182,7 +195,7 @@ public class Triangle {
             t = 1.0d;
         }
 
-        return edge.a.add(ab.mult(t));
+        return edge.getA().add(ab.mult(t));
     }
 
     /**
@@ -194,6 +207,14 @@ public class Triangle {
      */
     private boolean hasSameSign(double a, double b) {
         return Math.signum(a) == Math.signum(b);
+    }
+
+    public Set<Point> getPointSet() {
+        Set<Point> pointSet = new HashSet<>(3);
+        pointSet.add(a);
+        pointSet.add(b);
+        pointSet.add(c);
+        return pointSet;
     }
 
     @Override

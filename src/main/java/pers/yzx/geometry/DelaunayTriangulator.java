@@ -54,9 +54,9 @@ public class DelaunayTriangulator {
      * The vertex is inside a triangle.
      */
     private void pointInsideTriangle(Point point, Triangle triangle) {
-        Point a = triangle.a;
-        Point b = triangle.b;
-        Point c = triangle.c;
+        Point a = triangle.getA();
+        Point b = triangle.getB();
+        Point c = triangle.getC();
 
         triangleSoup.remove(triangle);
 
@@ -93,20 +93,20 @@ public class DelaunayTriangulator {
         triangleSoup.remove(first);
         triangleSoup.remove(second);
 
-        Triangle triangle1 = new Triangle(edge.a, firstNoneEdgeVertex, point);
-        Triangle triangle2 = new Triangle(edge.b, firstNoneEdgeVertex, point);
-        Triangle triangle3 = new Triangle(edge.a, secondNoneEdgeVertex, point);
-        Triangle triangle4 = new Triangle(edge.b, secondNoneEdgeVertex, point);
+        Triangle triangle1 = new Triangle(edge.getA(), firstNoneEdgeVertex, point);
+        Triangle triangle2 = new Triangle(edge.getB(), firstNoneEdgeVertex, point);
+        Triangle triangle3 = new Triangle(edge.getA(), secondNoneEdgeVertex, point);
+        Triangle triangle4 = new Triangle(edge.getB(), secondNoneEdgeVertex, point);
 
         triangleSoup.add(triangle1);
         triangleSoup.add(triangle2);
         triangleSoup.add(triangle3);
         triangleSoup.add(triangle4);
 
-        legalizeEdge(triangle1, new Edge(edge.a, firstNoneEdgeVertex), point);
-        legalizeEdge(triangle2, new Edge(edge.b, firstNoneEdgeVertex), point);
-        legalizeEdge(triangle3, new Edge(edge.a, secondNoneEdgeVertex), point);
-        legalizeEdge(triangle4, new Edge(edge.b, secondNoneEdgeVertex), point);
+        legalizeEdge(triangle1, new Edge(edge.getA(), firstNoneEdgeVertex), point);
+        legalizeEdge(triangle2, new Edge(edge.getB(), firstNoneEdgeVertex), point);
+        legalizeEdge(triangle3, new Edge(edge.getA(), secondNoneEdgeVertex), point);
+        legalizeEdge(triangle4, new Edge(edge.getB(), secondNoneEdgeVertex), point);
     }
 
     /**
@@ -157,20 +157,59 @@ public class DelaunayTriangulator {
         triangleSoup.addAll(newTriangles);
         for (Triangle newTriangle : newTriangles) {
             if (triangleSoup.contains(newTriangle)) {
-                if (newTriangle.a == unitedPoint) {
-                    legalizeEdge(newTriangle, new Edge(newTriangle.a, newTriangle.b), newTriangle.c);
-                    legalizeEdge(newTriangle, new Edge(newTriangle.a, newTriangle.c), newTriangle.b);
+                if (newTriangle.getA() == unitedPoint) {
+                    legalizeEdge(newTriangle, new Edge(newTriangle.getA(), newTriangle.getB()), newTriangle.getC());
+                    legalizeEdge(newTriangle, new Edge(newTriangle.getA(), newTriangle.getC()), newTriangle.getB());
                 }
-                if (newTriangle.b == unitedPoint) {
-                    legalizeEdge(newTriangle, new Edge(newTriangle.a, newTriangle.b), newTriangle.c);
-                    legalizeEdge(newTriangle, new Edge(newTriangle.b, newTriangle.c), newTriangle.a);
+                if (newTriangle.getB() == unitedPoint) {
+                    legalizeEdge(newTriangle, new Edge(newTriangle.getA(), newTriangle.getB()), newTriangle.getC());
+                    legalizeEdge(newTriangle, new Edge(newTriangle.getB(), newTriangle.getC()), newTriangle.getA());
                 }
-                if (newTriangle.c == unitedPoint) {
-                    legalizeEdge(newTriangle, new Edge(newTriangle.b, newTriangle.c), newTriangle.a);
-                    legalizeEdge(newTriangle, new Edge(newTriangle.a, newTriangle.c), newTriangle.b);
+                if (newTriangle.getC() == unitedPoint) {
+                    legalizeEdge(newTriangle, new Edge(newTriangle.getB(), newTriangle.getC()), newTriangle.getA());
+                    legalizeEdge(newTriangle, new Edge(newTriangle.getA(), newTriangle.getC()), newTriangle.getB());
                 }
             }
         }
+    }
+
+    private Polygon getEnvelope(List<Triangle> triangles, Point point) {
+        List<Point> points = new ArrayList<>(triangles.size());
+        if (triangles.isEmpty()) {
+            return new Polygon(points);
+        }
+        Triangle firstTri = triangles.get(0);
+        Point firPoint = null;
+        Point secondPoint = null;
+        if (firstTri.getA() == point) {
+            firPoint = firstTri.getB();
+            secondPoint = firstTri.getC();
+        }
+        if (firstTri.getB() == point) {
+            firPoint = firstTri.getC();
+            secondPoint = firstTri.getA();
+        }
+        if (firstTri.getC() == point) {
+            firPoint = firstTri.getA();
+            secondPoint = firstTri.getB();
+        }
+        points.add(firPoint);
+        points.add(secondPoint);
+        Point lastPoint = secondPoint;
+        while (points.size() == triangles.size()) {
+            for (Triangle triangle : triangles) {
+                if (triangle.hasVertex(lastPoint)) {
+                    Set<Point> pointSet = triangle.getPointSet();
+                    pointSet.remove(point);
+                    pointSet.remove(lastPoint);
+                    Point next = pointSet.iterator().next();
+                    points.add(next);
+                    lastPoint = next;
+                    break;
+                }
+            }
+        }
+        return new Polygon(points);
     }
 
     private List<Triangle> getNewTriangles(List<Triangle> trianglesToBeRemoved, Point point, Point unitedPoint) {
@@ -186,13 +225,13 @@ public class DelaunayTriangulator {
     }
 
     private Triangle getUnitedTriangle(Triangle triangle, Point unitedPoint, Point point) {
-        if (triangle.a == point) {
-            return new Triangle(unitedPoint, triangle.b, triangle.c);
+        if (triangle.getA() == point) {
+            return new Triangle(unitedPoint, triangle.getB(), triangle.getC());
         }
-        if (triangle.b == point) {
-            return new Triangle(triangle.a, unitedPoint, triangle.c);
+        if (triangle.getB() == point) {
+            return new Triangle(triangle.getA(), unitedPoint, triangle.getC());
         }
-        return new Triangle(triangle.a, triangle.b, unitedPoint);
+        return new Triangle(triangle.getA(), triangle.getB(), unitedPoint);
     }
 
     private Point getUnitedPoint(List<Triangle> trianglesToBeRemoved, Point point) {
@@ -201,9 +240,9 @@ public class DelaunayTriangulator {
         Map<Point, Double> pointAngleSumMap = new HashMap<>();
         for (Triangle triangle : trianglesToBeRemoved) {
             Double vertexAngle = triangleAngleMap.get(triangle);
-            deal(triangle.a, point, vertexAngle, pointAngleSumMap);
-            deal(triangle.b, point, vertexAngle, pointAngleSumMap);
-            deal(triangle.c, point, vertexAngle, pointAngleSumMap);
+            deal(triangle.getA(), point, vertexAngle, pointAngleSumMap);
+            deal(triangle.getB(), point, vertexAngle, pointAngleSumMap);
+            deal(triangle.getC(), point, vertexAngle, pointAngleSumMap);
         }
         Point unitedPoint = pointAngleSumMap.entrySet().stream().
                 reduce((o1, o2) -> o1.getValue() < o2.getValue() ? o1 : o2).get().getKey();
@@ -218,13 +257,13 @@ public class DelaunayTriangulator {
     }
 
     private double getVertexAngle(Triangle triangle, Point point) {
-        if (triangle.a == point) {
-            return new Vector(point, triangle.b).angle(new Vector(point, triangle.c));
+        if (triangle.getA() == point) {
+            return new Vector(point, triangle.getB()).angle(new Vector(point, triangle.getC()));
         }
-        if (triangle.b == point) {
-            return new Vector(point, triangle.a).angle(new Vector(point, triangle.c));
+        if (triangle.getB() == point) {
+            return new Vector(point, triangle.getA()).angle(new Vector(point, triangle.getC()));
         }
-        return new Vector(point, triangle.a).angle(new Vector(point, triangle.b));
+        return new Vector(point, triangle.getA()).angle(new Vector(point, triangle.getB()));
     }
 
     /**
@@ -244,14 +283,14 @@ public class DelaunayTriangulator {
 
                 Point noneEdgeVertex = neighbourTriangle.getNoneEdgeVertex(edge);
 
-                Triangle firstTriangle = new Triangle(noneEdgeVertex, edge.a, newVertex);
-                Triangle secondTriangle = new Triangle(noneEdgeVertex, edge.b, newVertex);
+                Triangle firstTriangle = new Triangle(noneEdgeVertex, edge.getA(), newVertex);
+                Triangle secondTriangle = new Triangle(noneEdgeVertex, edge.getB(), newVertex);
 
                 triangleSoup.add(firstTriangle);
                 triangleSoup.add(secondTriangle);
 
-                legalizeEdge(firstTriangle, new Edge(noneEdgeVertex, edge.a), newVertex);
-                legalizeEdge(secondTriangle, new Edge(noneEdgeVertex, edge.b), newVertex);
+                legalizeEdge(firstTriangle, new Edge(noneEdgeVertex, edge.getA()), newVertex);
+                legalizeEdge(secondTriangle, new Edge(noneEdgeVertex, edge.getB()), newVertex);
             }
         }
     }
@@ -275,9 +314,9 @@ public class DelaunayTriangulator {
         TriangleSoup triangleSoup1 = new TriangleSoup(triangleSoup);
         // Remove all triangles that contain vertices of the super triangle.
         if (superTriangle != null) {
-            triangleSoup1.removeTrianglesUsing(superTriangle.a);
-            triangleSoup1.removeTrianglesUsing(superTriangle.b);
-            triangleSoup1.removeTrianglesUsing(superTriangle.c);
+            triangleSoup1.removeTrianglesUsing(superTriangle.getA());
+            triangleSoup1.removeTrianglesUsing(superTriangle.getB());
+            triangleSoup1.removeTrianglesUsing(superTriangle.getC());
         }
         return triangleSoup1.getTriangles();
     }
