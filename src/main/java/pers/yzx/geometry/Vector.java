@@ -80,7 +80,7 @@ public class Vector {
      * @return A new instance holding the result of the multiplication
      */
     public Vector mult(double scalar) {
-        return new Vector(this.x * scalar, this.y * scalar);
+        return new Vector(this.x * scalar, this.y * scalar, this.z * scalar);
     }
 
     /**
@@ -90,7 +90,7 @@ public class Vector {
      * @return A new instance holding the result of the multiplication
      */
     public double dot(Vector vector) {
-        return this.x * vector.x + this.y * vector.y;
+        return this.x * vector.x + this.y * vector.y + this.z * vector.z;
     }
 
     /**
@@ -121,6 +121,6 @@ public class Vector {
     }
 
     public double angle(Vector vector) {
-        return Math.acos(this.dot(vector)/ (this.mag()*vector.mag()));
+        return Math.acos(this.dot(vector) / (this.mag() * vector.mag()));
     }
 }
