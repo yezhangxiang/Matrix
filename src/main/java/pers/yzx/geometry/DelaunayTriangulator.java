@@ -1,7 +1,9 @@
 package pers.yzx.geometry;
 
-import java.util.*;
-import java.util.function.Function;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -119,7 +121,7 @@ public class DelaunayTriangulator {
         double maxOfAnyCoordinate = 0.0d;
 
         for (Point point : getPointSet()) {
-            maxOfAnyCoordinate = Math.max(Math.max(point.getX(), point.getY()), maxOfAnyCoordinate);
+            maxOfAnyCoordinate = Math.max(Math.max(Math.abs(point.getX()), Math.abs(point.getY())), maxOfAnyCoordinate);
         }
 
         maxOfAnyCoordinate *= 16.0d;
@@ -150,35 +152,67 @@ public class DelaunayTriangulator {
             throw new IllegalArgumentException("The point " + point.toString() + " not in delaunay point set.");
         }
         List<Triangle> trianglesToBeRemoved = triangleSoup.findVertexTriangles(point);
-        Point unitedPoint = getUnitedPoint(trianglesToBeRemoved, point);
-        List<Triangle> newTriangles = getNewTriangles(trianglesToBeRemoved, point, unitedPoint);
+        Polygon polygon = getEnvelope(trianglesToBeRemoved, point);
+        DelaunayTriangulator localTriangulator = new DelaunayTriangulator(new HashSet<>(polygon.getPoints()));
+        localTriangulator.triangulate();
+        List<Triangle> localTriangles = localTriangulator.getTriangles();
+        List<Triangle> polygonTriangles = localTriangles.stream().
+                filter(triangle -> polygon.isInside(triangle.getCentroid())).collect(Collectors.toList());
         pointSet.remove(point);
         triangleSoup.removeAll(trianglesToBeRemoved);
-        triangleSoup.addAll(newTriangles);
-        for (Triangle newTriangle : newTriangles) {
-            if (triangleSoup.contains(newTriangle)) {
-                if (newTriangle.getA() == unitedPoint) {
-                    legalizeEdge(newTriangle, new Edge(newTriangle.getA(), newTriangle.getB()), newTriangle.getC());
-                    legalizeEdge(newTriangle, new Edge(newTriangle.getA(), newTriangle.getC()), newTriangle.getB());
-                }
-                if (newTriangle.getB() == unitedPoint) {
-                    legalizeEdge(newTriangle, new Edge(newTriangle.getA(), newTriangle.getB()), newTriangle.getC());
-                    legalizeEdge(newTriangle, new Edge(newTriangle.getB(), newTriangle.getC()), newTriangle.getA());
-                }
-                if (newTriangle.getC() == unitedPoint) {
-                    legalizeEdge(newTriangle, new Edge(newTriangle.getB(), newTriangle.getC()), newTriangle.getA());
-                    legalizeEdge(newTriangle, new Edge(newTriangle.getA(), newTriangle.getC()), newTriangle.getB());
+        triangleSoup.addAll(polygonTriangles);
+        List<Edge> envelopeEdges = getEdges(polygon);
+        for (Triangle polygonTriangle : polygonTriangles) {
+            for (Edge envelopeEdge : envelopeEdges) {
+                if (polygonTriangle.isNeighbour(envelopeEdge)) {
+                    legalizeEdge(polygonTriangle, envelopeEdge, polygonTriangle.getNoneEdgeVertex(envelopeEdge));
                 }
             }
         }
     }
 
-    private Polygon getEnvelope(List<Triangle> triangles, Point point) {
-        List<Point> points = new ArrayList<>(triangles.size());
-        if (triangles.isEmpty()) {
-            return new Polygon(points);
+    private List<Edge> getEdges(Polygon polygon) {
+        List<Point> points = polygon.getPoints();
+        int pointSize = points.size();
+        List<Edge> edges = new ArrayList<>(pointSize);
+        for (int i = 0; i < pointSize; i++) {
+            Point point1 = points.get(i);
+            Point point2 = points.get((i + 1) % pointSize);
+            edges.add(new Edge(point1, point2));
         }
-        Triangle firstTri = triangles.get(0);
+        return edges;
+    }
+
+    private Polygon getEnvelope(List<Triangle> triangles, Point point) {
+        List<Point> polygonPoints = new ArrayList<>(triangles.size());
+        if (triangles.isEmpty()) {
+            return new Polygon(polygonPoints);
+        }
+        Triangle firstTriangle = triangles.get(0);
+        Point lastPoint = startUp(firstTriangle, point, polygonPoints);
+        Set<Triangle> pastedTriangles = new HashSet<>(triangles.size());
+        pastedTriangles.add(firstTriangle);
+        for (int i = 1; i < triangles.size(); i++) {
+            for (Triangle triangle : triangles) {
+                if (pastedTriangles.contains(triangle)) {
+                    continue;
+                }
+                if (triangle.hasVertex(lastPoint)) {
+                    Set<Point> pointSet = triangle.getPointSet();
+                    pointSet.remove(point);
+                    pointSet.remove(lastPoint);
+                    Point next = pointSet.iterator().next();
+                    polygonPoints.add(next);
+                    lastPoint = next;
+                    pastedTriangles.add(triangle);
+                    break;
+                }
+            }
+        }
+        return new Polygon(polygonPoints);
+    }
+
+    private Point startUp(Triangle firstTri, Point point, List<Point> points) {
         Point firPoint = null;
         Point secondPoint = null;
         if (firstTri.getA() == point) {
@@ -195,75 +229,7 @@ public class DelaunayTriangulator {
         }
         points.add(firPoint);
         points.add(secondPoint);
-        Point lastPoint = secondPoint;
-        while (points.size() == triangles.size()) {
-            for (Triangle triangle : triangles) {
-                if (triangle.hasVertex(lastPoint)) {
-                    Set<Point> pointSet = triangle.getPointSet();
-                    pointSet.remove(point);
-                    pointSet.remove(lastPoint);
-                    Point next = pointSet.iterator().next();
-                    points.add(next);
-                    lastPoint = next;
-                    break;
-                }
-            }
-        }
-        return new Polygon(points);
-    }
-
-    private List<Triangle> getNewTriangles(List<Triangle> trianglesToBeRemoved, Point point, Point unitedPoint) {
-        List<Triangle> newTriangles = new ArrayList<>();
-        for (Triangle triangle : trianglesToBeRemoved) {
-            if (triangle.hasVertex(unitedPoint)) {
-                continue;
-            }
-            Triangle unitedTriangle = getUnitedTriangle(triangle, unitedPoint, point);
-            newTriangles.add(unitedTriangle);
-        }
-        return newTriangles;
-    }
-
-    private Triangle getUnitedTriangle(Triangle triangle, Point unitedPoint, Point point) {
-        if (triangle.getA() == point) {
-            return new Triangle(unitedPoint, triangle.getB(), triangle.getC());
-        }
-        if (triangle.getB() == point) {
-            return new Triangle(triangle.getA(), unitedPoint, triangle.getC());
-        }
-        return new Triangle(triangle.getA(), triangle.getB(), unitedPoint);
-    }
-
-    private Point getUnitedPoint(List<Triangle> trianglesToBeRemoved, Point point) {
-        Map<Triangle, Double> triangleAngleMap = trianglesToBeRemoved.stream().
-                collect(Collectors.toMap(Function.identity(), triangle -> getVertexAngle(triangle, point)));
-        Map<Point, Double> pointAngleSumMap = new HashMap<>();
-        for (Triangle triangle : trianglesToBeRemoved) {
-            Double vertexAngle = triangleAngleMap.get(triangle);
-            deal(triangle.getA(), point, vertexAngle, pointAngleSumMap);
-            deal(triangle.getB(), point, vertexAngle, pointAngleSumMap);
-            deal(triangle.getC(), point, vertexAngle, pointAngleSumMap);
-        }
-        Point unitedPoint = pointAngleSumMap.entrySet().stream().
-                reduce((o1, o2) -> o1.getValue() < o2.getValue() ? o1 : o2).get().getKey();
-        return unitedPoint;
-    }
-
-    private void deal(Point vertex, Point point, Double vertexAngle, Map<Point, Double> pointAngleSumMap) {
-        if (vertex != point) {
-            double angle = pointAngleSumMap.computeIfAbsent(vertex, k -> 0.0);
-            pointAngleSumMap.put(vertex, angle + vertexAngle);
-        }
-    }
-
-    private double getVertexAngle(Triangle triangle, Point point) {
-        if (triangle.getA() == point) {
-            return new Vector(point, triangle.getB()).angle(new Vector(point, triangle.getC()));
-        }
-        if (triangle.getB() == point) {
-            return new Vector(point, triangle.getA()).angle(new Vector(point, triangle.getC()));
-        }
-        return new Vector(point, triangle.getA()).angle(new Vector(point, triangle.getB()));
+        return secondPoint;
     }
 
     /**

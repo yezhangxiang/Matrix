@@ -217,9 +217,17 @@ public class Triangle {
         return pointSet;
     }
 
+    public Point getCentroid() {
+        double x = (a.getX() + b.getX() + c.getX()) / 3.0;
+        double y = (a.getY() + b.getY() + c.getY()) / 3.0;
+        double z = (a.getZ() + b.getZ() + c.getZ()) / 3.0;
+        return new Point(x, y, z);
+//        return a.add(new Vector(a, b).mult(0.5).add((new Vector(b, c).mult(0.5))));
+    }
+
     @Override
     public String toString() {
-        return "Triangle2D[" + a + ", " + b + ", " + c + "]";
+        return "Triangle[" + a + ", " + b + ", " + c + "]";
     }
 
 }
