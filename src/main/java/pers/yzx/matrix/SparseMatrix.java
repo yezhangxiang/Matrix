@@ -1,18 +1,19 @@
 package pers.yzx.matrix;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
 public class SparseMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
-    ArrayList<HashMap<Integer, E>> elementData;
+    ArrayList<Int2ObjectOpenHashMap<E>> elementData;
 
     public SparseMatrix(Bound bound) {
         super(bound);
         elementData = new ArrayList<>();
         for (int i = 0; i < getFloorCount(); i++) {
-            elementData.add(new HashMap<>());
+            elementData.add(new Int2ObjectOpenHashMap<>());
         }
     }
 
@@ -20,14 +21,14 @@ public class SparseMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
         super(bound, floorCount);
         elementData = new ArrayList<>();
         for (int i = 0; i < getFloorCount(); i++) {
-            elementData.add(new HashMap<>());
+            elementData.add(new Int2ObjectOpenHashMap<>());
         }
     }
 
     @Override
     public int getEffectiveCount() {
         int effectiveCount = 0;
-        for (HashMap<Integer, E> elementDatum : elementData) {
+        for (Int2ObjectOpenHashMap<E> elementDatum : elementData) {
             effectiveCount += elementDatum.size();
         }
         return effectiveCount;
@@ -42,7 +43,7 @@ public class SparseMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
     @Override
     public void set(int floorIndex, int rowIndex, int columnIndex, E element) {
         rangeCheck(floorIndex, rowIndex, columnIndex);
-        HashMap<Integer, E> floorData = elementData.get(floorIndex);
+        Int2ObjectOpenHashMap<E> floorData = elementData.get(floorIndex);
         int floorFlatIndex = getFlatIndex(DEFAULT_FLOOR_INDEX, rowIndex, columnIndex);
         if (element == null) {
             floorData.remove(floorFlatIndex);
@@ -53,7 +54,7 @@ public class SparseMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
 
     @Override
     public void clear() {
-        for (HashMap<Integer, E> elementDatum : elementData) {
+        for (Int2ObjectOpenHashMap<E> elementDatum : elementData) {
             elementDatum.clear();
         }
         bound = new Bound(0, 0, 0, 0, 0);
@@ -70,7 +71,7 @@ public class SparseMatrix<E> extends AbstractMatrix<E> implements Matrix<E> {
     public Object clone() {
         try {
             SparseMatrix<E> sparseMatrix = (SparseMatrix<E>) super.clone();
-            sparseMatrix.elementData = (ArrayList<HashMap<Integer, E>>) elementData.clone();
+            sparseMatrix.elementData = (ArrayList<Int2ObjectOpenHashMap<E>>) elementData.clone();
             for (int i = 0; i < sparseMatrix.elementData.size(); i++) {
                 sparseMatrix.elementData.set(i, elementData.get(i));
             }
