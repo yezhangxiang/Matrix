@@ -31,7 +31,7 @@ public class DelaunayTriangulationExample implements GLEventListener, MouseListe
     Set<Point> pointSet = new HashSet<>();
 
     public static void main(String[] args) {
-        Frame frame = new Frame("Delaunay Triangulation Example");
+        Frame frame = new Frame("Delaunay Triangulation Add/Remove Point Example");
         frame.setResizable(false);
 
         GLCapabilities caps = new GLCapabilities(GLProfile.get("GL2"));

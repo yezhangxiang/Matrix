@@ -192,7 +192,8 @@ public class DelaunayTriangulator {
         Point lastPoint = startUp(firstTriangle, point, polygonPoints);
         Set<Triangle> pastedTriangles = new HashSet<>(triangles.size());
         pastedTriangles.add(firstTriangle);
-        for (int i = 1; i < triangles.size(); i++) {
+        for (int i = 2; i < triangles.size(); i++) {
+            boolean isFind = false;
             for (Triangle triangle : triangles) {
                 if (pastedTriangles.contains(triangle)) {
                     continue;
@@ -205,8 +206,12 @@ public class DelaunayTriangulator {
                     polygonPoints.add(next);
                     lastPoint = next;
                     pastedTriangles.add(triangle);
+                    isFind = true;
                     break;
                 }
+            }
+            if (!isFind) {
+                System.out.println("bug!");
             }
         }
         return new Polygon(polygonPoints);

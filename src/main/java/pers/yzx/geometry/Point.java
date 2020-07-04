@@ -1,5 +1,7 @@
 package pers.yzx.geometry;
 
+import java.util.Objects;
+
 public class Point {
     private final double x;
     private final double y;
@@ -31,6 +33,20 @@ public class Point {
 
     public Point add(Vector vector) {
         return new Point(x + vector.x, y + vector.y);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Point) {
+            Point point = (Point) obj;
+            return Double.compare(x, point.x) == 0 && Double.compare(y, point.y) == 0 && Double.compare(z, point.z) == 0;
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(x, y, z);
     }
 
     @Override
