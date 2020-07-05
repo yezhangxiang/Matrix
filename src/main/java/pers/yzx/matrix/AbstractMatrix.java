@@ -416,11 +416,11 @@ public abstract class AbstractMatrix<E> implements Matrix<E> {
 
 
         public long estimateSize() {
-            return (long) (getFence() - index);
+            return getFence() - index;
         }
 
         public int characteristics() {
-            return Spliterator.SIZED | Spliterator.SUBSIZED;
+            return Spliterator.ORDERED | Spliterator.DISTINCT;
         }
     }
 

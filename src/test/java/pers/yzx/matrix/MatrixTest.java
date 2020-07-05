@@ -286,43 +286,76 @@ public class MatrixTest {
     }
 
     @Test
-    public void streamSparseMatrix() {
+    public void streamSparseDiagonalMatrix() {
         // init
         Bound bound = new Bound(0.0, 0.0, 1000, 1000, 1);
         System.out.println("test stream for sparse matrix:");
         Matrix<String> matrix = new SparseMatrix<>(bound);
+        setDiagonalMatrix(matrix);
         stream(matrix);
     }
 
     @Test
-    public void streamArrayMatrix() {
+    public void streamSparseFullMatrix() {
+        // init
+        Bound bound = new Bound(0.0, 0.0, 1000, 1000, 1);
+        System.out.println("test stream for sparse matrix:");
+        Matrix<String> matrix = new SparseMatrix<>(bound);
+        setFullMatrix(matrix);
+        stream(matrix);
+    }
+
+    @Test
+    public void streamArrayFullMatrix() {
         // init
         Bound bound = new Bound(0.0, 0.0, 1000, 1000, 1);
         System.out.println("test stream for array matrix:");
         Matrix<String> matrix = new ArrayMatrix<>(bound);
+        setFullMatrix(matrix);
         stream(matrix);
     }
 
-    private void stream(Matrix<String> arrayMatrix) {
-        for (int i = 0; i < arrayMatrix.getRowCount(); i++) {
-            for (int j = 0; j < arrayMatrix.getColumnCount(); j++) {
-                arrayMatrix.set(i, j, "r" + i + "_c" + j);
+    @Test
+    public void streamArrayDiagonalMatrix() {
+        // init
+        Bound bound = new Bound(0.0, 0.0, 1000, 1000, 1);
+        System.out.println("test stream for array matrix:");
+        Matrix<String> matrix = new ArrayMatrix<>(bound);
+        setDiagonalMatrix(matrix);
+        stream(matrix);
+    }
+
+    private void setDiagonalMatrix(Matrix<String> matrix) {
+        System.out.println("diagonal matrix");
+        int n = Math.min(matrix.getRowCount(), matrix.getColumnCount());
+        for (int i = 0; i < n; i++) {
+                matrix.set(i, i, "r" + i + "_c" + i);
+        }
+    }
+
+    private void setFullMatrix(Matrix<String> matrix) {
+        System.out.println("full matrix");
+        for (int i = 0; i < matrix.getRowCount(); i++) {
+            for (int j = 0; j < matrix.getColumnCount(); j++) {
+                matrix.set(i, j, "r" + i + "_c" + j);
             }
         }
+    }
 
+    private void stream(Matrix<String> matrix) {
         // test stream sorted
         long startTime = System.currentTimeMillis();
-        List<String> sortedList = arrayMatrix.stream().map(Matrix.Cursor::getElement).sorted(Comparator.naturalOrder()).collect(toList());
+        List<String> sortedList = matrix.stream().map(Matrix.Cursor::getElement).sorted(Comparator.naturalOrder()).collect(toList());
         long endTime = System.currentTimeMillis();
         System.out.println("stream sorted takes " + (endTime - startTime));
-        assertEquals(arrayMatrix.getCount(), sortedList.size());
+        assertEquals(matrix.getEffectiveCount(), sortedList.size());
 
         // test parallel stream sorted
         startTime = System.currentTimeMillis();
-        List<String> parallelSortedList = arrayMatrix.parallelStream().map(Matrix.Cursor::getElement).sorted(Comparator.naturalOrder()).collect(toList());
+        List<String> parallelSortedList = matrix.parallelStream().map(Matrix.Cursor::getElement).sorted(Comparator.naturalOrder()).collect(toList());
         endTime = System.currentTimeMillis();
         System.out.println("parallel sorted stream takes " + (endTime - startTime));
-        assertEquals(arrayMatrix.getCount(), parallelSortedList.size());
+        assertEquals(matrix.getEffectiveCount(), parallelSortedList.size());
 
         assertEquals(sortedList, parallelSortedList);
 
@@ -330,14 +363,14 @@ public class MatrixTest {
                 t.contains("7") || t.contains("9");
         // test stream filter
         startTime = System.currentTimeMillis();
-        List<String> filterList = arrayMatrix.stream().
+        List<String> filterList = matrix.stream().
                 map(Matrix.Cursor::getElement).filter(filterPredicate).collect(toList());
         endTime = System.currentTimeMillis();
         System.out.println("stream filter takes " + (endTime - startTime));
 
         // test parallel stream filter
         startTime = System.currentTimeMillis();
-        List<String> parallelFilterList = arrayMatrix.parallelStream().
+        List<String> parallelFilterList = matrix.parallelStream().
                 map(Matrix.Cursor::getElement).filter(filterPredicate).collect(toList());
         endTime = System.currentTimeMillis();
         System.out.println("parallel stream filter takes " + (endTime - startTime));
@@ -345,7 +378,7 @@ public class MatrixTest {
         // test stream foreach filter
         startTime = System.currentTimeMillis();
         List<String> foreachFilterList = new ArrayList<>();
-        for (Matrix.Cursor<Index, String> cursor : arrayMatrix) {
+        for (Matrix.Cursor<Index, String> cursor : matrix) {
             if (filterPredicate.test(cursor.getElement())) {
                 foreachFilterList.add(cursor.getElement());
             }
