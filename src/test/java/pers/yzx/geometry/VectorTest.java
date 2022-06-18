@@ -3,7 +3,84 @@ package pers.yzx.geometry;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 public class VectorTest {
+
+    @Test
+    public void broad() {
+        int N = 3;
+        int [][] matrix = new int[N][N];
+        matrix[0][1] = 1;
+        matrix[1][0] = 1;
+        matrix[1][2] = 1;
+        matrix[2][1] = 1;
+        // List 就是 vector, null 就是空指针
+        List<Set<Integer>> serverSetList = new ArrayList<>();
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j <= i; j++) {
+                if (matrix[i][j] != 0) {
+                    Set<Integer> fooSet = null;
+                    Set<Integer> barSet = null;
+                    // 遍历已经找到的服务器集合（所有能相连接的服务器定义为一个集合）
+                    for (Set<Integer> serverSet : serverSetList) {
+                        if (serverSet.contains(i)) {
+                            fooSet = serverSet;
+                        }
+                        if (serverSet.contains(j)) {
+                            barSet = serverSet;
+                        }
+                    }
+                    if (fooSet == null && barSet == null) {
+                        Set<Integer> newServerSet = new HashSet<>();
+                        newServerSet.add(i);
+                        newServerSet.add(j);
+                        serverSetList.add(newServerSet);
+                    }
+                    if (fooSet == null && barSet != null) {
+                        barSet.add(i);
+                    }
+                    if (fooSet != null && barSet == null) {
+                        fooSet.add(j);
+                    }
+                    if (fooSet != null && barSet != null) {
+                        fooSet.addAll(barSet);
+                        serverSetList.remove(barSet);
+                    }
+                }
+            }
+        }
+        System.out.println(serverSetList.size());
+    }
+
+    @Test
+    public void maxNum() {
+        long x = 6761;
+        int y = 2;
+        int z; // output
+        long prefixNum = 1;
+        for (int i = 0; i < y; i++) {
+            prefixNum *= 26;
+        }
+        // 这段在做向上取整
+        double suffixNum = (double)x/prefixNum;
+        int suffixNumInt = (int)suffixNum;
+        int realSuffixNum = suffixNumInt;
+        if (suffixNum == suffixNumInt) {
+            realSuffixNum = suffixNumInt - 1;
+        }
+
+        z = 1;
+        while (realSuffixNum >= 10) {
+            realSuffixNum /= 10;
+            z++;
+        }
+
+        System.out.println("length is " + z);
+    }
 
     @Test
     public void mag() {
